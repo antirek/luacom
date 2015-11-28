@@ -1,0 +1,608 @@
+<!doctype HTML public "-//W3C//DTD HTML 4.0 Frameset//EN">
+<html><head><title>LuaCOM: элементы LuaCOM</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="StyleSheet" href="common_css.css">
+<script type="text/javascript" src="script.js"></script>
+<object id=hhctrl classid="clsid:ADB880A6-D8FF-11CF-9377-00AA003B7A11" width=0 height=0 vspace=0 hspace=0 border=0 type="application/x-oleobject"></object>
+</head>
+<body>
+<div class="post translation shortcuts_item">
+<div class="content html_format">
+<div class="head0"><h1 class="title"><font size=5>Глава 3</font></h1></div>
+<h3>Элементы LuaCOM</h3>
+LuaCOM состоит из следующих элементов:
+<ul><li>Объекты LuaCOM, которые делают доступными в Lua COM-объекты;</li>
+<li>API LuaCOM, набор функций для различных задач (инициализация библиотеки, создание объекта, реализация автоматизации интерфейсов в Lua, обработка точек подключения, и т.д.);</li>
+<li>Автоматизация привязки, которая преобразует обращения к объектам LuaCOM в вызовы COM интерфейса и COM обращения к интерфейсу, реализованному в Lua, на вызовы функций Lua или доступ к таблицам;</li>
+<li>Правила конвертирования типов LuaCOM, которые управляют преобразованием типов между Lua и видами автоматизации;</li>
+<li>Правила передачи параметров LuaCOM, которые описывают как LuaCOM перевести список параметров Lua в COM и наоборот;</li>
+<li>другие объекты, вроде <tt>typelib</tt>, <tt>typeinfo</tt>, <tt>enumerator</tt>, и т.д.</li></ul>
+<a name="3.1"></a>
+<h4>3.1 LuaCOM API</h4>
+API LuaCOM разделяется на две части: стандартный API и расширенный API.
+Стандартный API включает в себя основные функциональные возможности, необходимые для использования COM объектов.
+Расширенный API включает дополнительные функции API Lua, которые упрощают разработку приложений с использованием LuaCOM.
+Это различие было сделано в связи с возможностью неограниченного роста функций, которые могли, в конечном итоге, загромоздить библиотеку, делая её очень большой и тяжелой в использовании.
+В настоящее время, расширенный API полностью реализован в Lua и может быть легко удален без каких-либо проблем.<br><br>
+Стандартный API в дальнейшем разделяется на два класса: API Lua и API C/C++.
+API C/C++ используется прежде всего для инициализации библиотеки и низкоуровневого построения объектов LuaCOM. Он объявляется в файле заголовка <tt>luacom.h</tt>.
+API Lua разрешает Lua-программам доступ ко всем функциональным возможностям LuaCOM.
+Он реализуется как набор функций внутри глобальной таблицы, называемой <tt>luacom</tt>; далее эти функции будут называться LuaCOM <i>методами</i>.
+Эта таблица создается и заполняется когда вызвана функция <tt>luacom_open</tt> API C/C++.
+Ниже приводится краткое изложение API LuaCOM. Подробные сведения от этих методах имеются в <a href="reference.htm#6.2">главе 6</a>.
+<div class="label">Стандартный API Lua</div>
+<table class="content html_format tbl_1" style="border-collapse:collapse; border-color:#c0c0c0;" border=1px width=90% align=center>
+<tr class=tr_head><td>МЕТОД<br>METHOD</td><td>ОПИСАНИЕ<br>DESCRIPTION</td></tr>
+<tr><td><tt>CreateObject</tt></td><td>Создает объект LuaCOM.</td></tr>
+<tr><td><tt>NewObject</tt></td><td>Создает объект LuaCOM реализованный в Lua.</td></tr>
+<tr><td><tt>NewControl</tt></td><td>Создает LuaCOM элемент управления (контрол) OLE реализованный в Lua.</td></tr>
+<tr><td><tt>GetObject</tt></td><td>Создает объект LuaCOM, связанный с экземпляром уже работающего COM-объекта.</td></tr>
+<tr><td><tt>ExposeObject</tt></td><td>Выставляет объект LuaCOM или элемент управления OLE, так что другие приложения могут ссылаться на него.</td></tr>
+<tr><td><tt>RevokeObject</tt></td><td>Отменяет операцию <tt>ExposeObject</tt>.</td></tr>
+<tr><td><tt>RegisterObject</tt></td><td>Заполняет записи в реестре, необходимые для выставления объекта СОМ или элемента управления OLE.</td></tr>
+<tr><td><tt>UnRegisterObject</tt></td><td>Удаляет записи в реестре, необходимые для выставления объекта СОМ или элемента управления OLE.</td></tr>
+<tr><td><tt>Connect</tt></td><td>Создает точку подключения между объектом и Lua таблицей.</td></tr>
+<tr><td><tt>ImplInterface</tt></td><td>Реализует интерфейс IDispatch, с помощью таблицы Lua.</td></tr>
+<tr><td><tt>ImplInterfaceFromTypelib</tt></td><td>Реализует интерфейс IDispatch, описанный в библиотеке типов (Type Library) с помощью таблицы Lua.</td></tr>
+<tr><td><tt>addConnection</tt></td><td>Соединяет два объекта LuaCOM.</td></tr>
+<tr><td><tt>releaseConnection</tt></td><td>Отключает объект LuaCOM от его точки подключения.</td></tr>
+<tr><td><tt>isMember</tt></td><td>Проверяет, соответствует ли имя методу или свойству объекта LuaCOM.</td></tr>
+<tr><td><tt>ProgIDfromCLSID</tt></td><td>Получает ProgID связанный с CLSID.</td></tr>
+<tr><td><tt>CLSIDfromProgID</tt></td><td>Получает CLSID связанный с ProgID.</td></tr>
+<tr><td><tt>GetIUnknown</tt></td><td>Возвращает интерфейс IUnknown к объекту LuaCOM как полные пользовательские данные (userdata).</td></tr>
+<tr><td><tt>DumpTypeInfo</tt></td><td>Выводит на консоль типовые сведения об указанном объекте LuaCOM. Этот метод следует использовать только для отладки.</td></tr>
+<tr><td><tt>GetCurrentDirectory</tt></td><td>Возвращает текущий каталог.</td></tr>
+<tr><td><tt>CreateLuaCOM</tt></td><td>Преобразовывает полные пользовательские данные IUnknown в объект LuaCOM.</td></tr>
+<tr><td><tt>ImportIUnknown</tt></td><td>Конвертирует облегченнные пользовательские данные (указатель - pointer) в полные пользовательские данные IUnknown.</td></tr>
+<tr><td><tt>DetectAutomation</tt></td><td>Используется для реализации COM-серверов. Разыскивает в командной строке /Register или /UnRegister /Automation
+(без учета регистра) и вызывает определяемые пользователем функции для регистрации, отмены регистрации или выставления объектов, вводя цикл обработки сообщений в последнем случае.
+Если командной строки нет, то предполагается что все это уже в работе, вызывается функция выставления и возврата.</td></tr></table>
+<div class="label">Расширенный API Lua</div>
+<table class="content html_format tbl_1" style="border-collapse:collapse; border-color:#c0c0c0;" border=1px width=90% align=center>
+<tr class=tr_head><td>МЕТОД<br>METHOD</td><td>ОПИСАНИЕ<br>DESCRIPTION</td></tr>
+<tr><td><tt>CreateLocalObject</tt></td><td>Создает объект LuaCOM как <a class=popupspot href="JavaScript:hhctrl.TextPopup('out-of-process server, реализованный в виде ЕХЕ-модуля и выполняемый вне адресного пространства клиента - на той же или на удаленной машине.','Arial,9',10,10,0xffffff,0xd69967)">внепроцессный сервер</a>.</td></tr>
+<tr><td><tt>CreateInprocObject</tt></td><td>Создает объект LuaCOM как <a class=popupspot href="JavaScript:hhctrl.TextPopup('in-process server - сервер &quot;в процессе&quot; (в COM-технологиях - тип сервера, который реализуется как DLL, исполняемая в том же процессе, что и клиент)','Arial,9',10,10,0xffffff,0xd69967)">внутрипроцессный сервер</a>.</td></tr>
+<tr><td><tt>ExportConstants</tt></td><td>Экспортирует все константы библиотеки типов (автономные или связанные с объектом LuaCOM) для общей окружающей среды (или возможно для таблицы).</td></tr>
+<tr><td><tt>DumpTypeLib</tt></td><td>Создает файл HTML с описанием библиотеки типов.</td></tr>
+<tr><td><tt>GetType</tt></td><td>Возвращает строку, с описанием типа объекта, в случае если этот объект принадлежит библиотеке LuaCOM.</td></tr>
+<tr><td><tt>ViewTypeLib</tt></td><td>Запускает <tt>DumpTypeLib</tt> и показывает созданный файл с помощью Internet Explorer&#174;.</td></tr>
+<tr><td><tt>pairs</tt></td><td>Делает тоже самое, что и <tt>pairs</tt> для COM Enumerators.</td></tr>
+<tr><td><tt>FillTypeLib</tt></td><td>Создает таблицу с описанием библиотеки типов.</td></tr>
+<tr><td><tt>FillTypeInfo</tt></td><td>Создает таблицу с описанием сведений типа.</td></tr></table>
+<div class="label">Стандартный API C/C++</div>
+<table class="content html_format tbl_1" style="border-collapse:collapse; border-color:#c0c0c0;" border=1px width=90% align=center>
+<tr class=tr_head><td>ФУНКЦИЯ<br>FUNCTION</td><td>ОПИСАНИЕ<br>DESCRIPTION</td></tr>
+<tr><td><tt>luacom_open</tt></td><td>Инициализирует библиотеку LuaCOM в структуре Lua. Её нужно вызывать перед любым использованием функций LuaCOM.</td></tr>
+<tr><td><tt>luacom_close</tt></td><td>Функция завершения LuaCOM.</td></tr>
+<tr><td><tt>luacom_detectAutomation</tt></td><td>Эта функция является помощником для создания COM серверов. Она отыскивает в командной строке ключи “/Automation” и “/Register” и соответственно вызывает некоторые определяемые пользователем функции Lua.</td></tr>
+<tr><td><tt>luacom_IDispatch2LuaCOM</tt></td><td>Принимает IDispatch интерфейс и создает объект LuaCOM чтобы выставить его, перемещая объект по Lua стеку.</td></tr></table>
+<a name="3.2"></a>
+<h4>3.2 Объекты LuaCOM</h4>
+LuaCOM имеет дело с <i>объектами LuaCOM</i>, которые являются не более чем Lua таблицей с метатаблицей LuaCOM, что ссылается на LuaCOM'овский объект C++; который, в свою очередь, является посредником для COM объекта:
+он удерживает указатель <tt>IDispatch</tt> на объект и переводит обращения Lua к вызовам Automation (автоматизации) и обращениям к свойствам. Вот пример использования LuaCOM объекта:
+<pre><code>-- Instantiate a Microsoft(R) Calendar Object
+-- Создаем экземпляр объекта Microsoft(R) Calendar
+calendar = luacom.CreateObject("MSCAL.Calendar")
+-- Error check (проверка ошибок)
+if calendar == nil then
+  print("Error creating object")
+  exit(1)
+end
+-- Method call (вызов метода)
+calendar:AboutBox()
+-- Property Get (получение свойства)
+current_day = calendar.Day
+-- Property Put (размещение свойства)
+calendar.Month = calendar.Month + 1
+print(current_day)
+print(calendar.Month)</code></pre>
+Каждый раз, когда LuaCOM нужно преобразовать указатель <tt>IDispatch</tt> в Lua, он создает LuaCOM объект. Существуют две ситуации, когда это происходит:
+<ul><li>при вызове функций API LuaCOM, которые возвращают COM объекты (<tt>CreateObject</tt>, <tt>GetObject</tt>, <tt>NewObject</tt>, <tt>Connect</tt>, и т.д.) и</li>
+<li>при получении возвращаемых значений из COM, где некоторые из них являются указателями <tt>IDispatch</tt>.</li></ul>
+Вот пример таких ситуаций:
+<pre><code>-- First, we get a luacom object using LuaCOM API
+-- Вначале получаем объект luacom с помощью API LuaCOM
+excel = luacom.CreateObject("Excel.Application")
+assert(luacom.GetType(excel) == "LuaCOM")
+-- now we get one from a method call
+-- теперь получаем один из вызовов метода
+sheets = excel.Sheets
+assert(luacom.GetType(sheets) == "LuaCOM")</code></pre>
+Объект LuaCOM может быть передан как параметр вызовов методов на других объектах LuaCOM, если эти методы предполагают аргумент типа <a class=popupspot href="JavaScript:hhctrl.TextPopup('от англ. dispatch interface - диспинтерфейс, диспетчерский интерфейс (осуществляет доступ к сервисам COM-объектов в OLE Automation)','Arial,9',10,10,0xffffff,0xd69967)">диспетчерского интерфейса (dispinterface)</a>. Вот пример иллюстрирующий такую ситуацию:
+<pre><code>-- Gets a running instance of Excel
+-- Получаем запущенный экземпляр Excel
+excel = luacom.GetObject("Excel.Application")
+-- Gets the set of worksheets (получаем набор рабочих листов)
+sheets = excel.Worksheets
+-- gets the first two sheets (получаем первые два листа)
+sheet1 = sheets:Item(1)
+sheet2 = sheets:Item(2)
+-- Exchange them (here we pass the second sheet as a parameter to a method)
+-- Заменяем их (здесь мы передаем второй лист как параметр метода)
+sheet1:Move(nil, sheet2)</code></pre>
+Существуют два вида LuaCOM объектов: типовые и универсальные. Типовые объекты - те, чей COM-объект имеет информацию о типе.
+Универсальные - те, чей COM-объект не предоставляет никаких сведений о типе. В некоторых ситуациях эта разница является важной.
+<a name="3.2.1"></a>
+<h5>3.2.1 Удаление объекта</h5>
+Объекты LuaCOM высвобождаются через механизм сбора мусора Lua, так как не существует никакого определенного метода API для их уничтожения.<br><br>
+<div class="caution"><b>Внимание&nbsp;&nbsp;&nbsp;</b> LuaCOM только отслеживает ссылки на COM-объекты.
+Он не работает с понятиями “приложение”, “компонент”, “процесс”, и т.д.
+Он даже не знает какие объекты являются частью того же компонента или приложения. Это имеет некоторые последствия на утилизацию объекта:
+<ul><li>компонент можно считать “завершившим” свои отношения с LuaCOM только когда высвобождены все ссылки к его объектам, а не только к тем, что созданы с помощью <tt>CreateObject</tt>;</li>
+<li>у некоторых компонентов имеется метод “Quit”. С его помощью можно закрыть интерфейс компонента, но сам он может остаться в работе, если на него имеются хоть какие-то ссылки.
+Тем не менее, эти ссылки не могут использоваться, с достаточной гарантией, после вызова метода “Quit”.<br>
+Для высвобождения компонента, он должен присвоить значение <i>nil</i> всем ссылкам на компонент (и его вложенные объекты) и затем вызвать функцию <tt>collectgarbage</tt> - сборщик мусора.</li></ul></div>
+<a name="3.3"></a>
+<h4>3.3 Автоматизация привязки</h4>
+Автоматизация привязки отвечает за преобразование табличных обращений к объекту LuaCOM в вызовы COM интерфейса. Кроме того, она также предоставляет механизм для реализации диспетчерских интерфейсов (диспинтерфейсов), использующих обычные Lua таблицы.
+<a name="3.3.1"></a>
+<h5>3.3.1 Реализация диспинтерфейсов в Lua</h5>
+Автоматизация привязки имеет класс C++ по имени <tt>tLuaDispatch</tt>, который реализует универсальный интерфейс <tt>IDispatch</tt>.
+Реализация данного класса переводит вызовы метода и обращения к свойствам, сделанные к объектам этого класса, в вызовы Lua и обращения к таблицам.
+Таким образом, можно реализовать диспинтерфейс полностью в Lua, при условии, что он имеет библиотеку типов с его описанием.
+Эта библиотека типов может быть автономной (с привязкой по её расположению в файловой системе) или может быть связанной с некоторым зарегистрированным компонентом.
+В этом случае она может быть связана <tt>ProgID</tt> компонента.<br><br>
+Объекты C++ этого класса можно использовать в любом месте, где предполагается интерфейс <tt>IDispatch</tt> или <tt>IUnknown</tt>.
+LuaCOM берет на себя эти преобразования. Вот ниже показан пример реализации диспинтерфейса в Lua.
+<pre><code>-- Creates and fills the Lua table
+-- that will implement the COM interface
+-- Создаем и заполняем таблицу Lua,
+-- что будет реализовывать COM интерфейс
+events_table = &#123;&#125;
+function events_table:AfterUpdate()
+  print("AfterUpdate called!")
+end
+-- Here we implement the interface DCalendarEvents, which is part
+-- of the Microsoft(R) Calendar object, whose ProgID is MSCAL.Calendar
+-- Здесь мы реализуем интерфейс DCalendarEvents, который является частью
+-- объекта Calendar Microsoft(R), чей ProgID - MSCAL.Calendar
+events_obj = luacom.ImplInterface(
+  events_table,
+  "MSCAL.Calendar",
+  "DCalendarEvents")
+-- Checks for errors (проверяем ошибки)
+--
+if events_obj == nil then
+  print("Implementation failed")
+  exit(1)
+end
+-- Tests the interface: this must generate a call
+-- to the events:AfterUpdate defined above
+-- Проверяем интерфейс: это должно привести
+-- к вызову events:AfterUpdate заданному выше
+--
+events_obj:AfterUpdate()</code></pre>
+Если интерфейс для реализации описан в автономной библиотеке типов, взамен должен использоваться метод <tt>ImplInterfaceFromTypelib</tt>:
+<pre><code>-- Creates and fills the Lua table that will
+-- implement the Automation interface
+-- Создаем и заполняем таблицу Lua, что будет
+-- реализовывать интерфейс автоматизации
+hello_table = &#123;&#125;
+function hello:Hello()
+  print("Hello World!")
+end
+-- Here we implement the interface IHello
+-- Здесь реализуем интерфейс IHello
+--
+hello_obj = luacom.ImplInterfaceFromTypelib(hello_table, "hello.tlb", "IHello")
+-- Checks for errors (проверка на ошибки)
+--
+if hello_obj == nil then
+  print("Implementation failed")
+  os.exit(1)
+end
+-- Tests the interface (тестируем интерфейс)
+--
+hello_obj:Hello()</code></pre>
+Оба метода возвращают объект LuaCOM, соответствующий интерфейс <tt>IDispatch</tt> которого реализуется по указанной таблице.
+Этот объект LuaCOM можно передать в качестве аргумента COM-методам, которые рассчитаны на диспинтерфейс или методы API LuaCOM (подобные <tt>addConnection</tt>).<br><br>
+Также можно использовать метод <tt>NewObject</tt>, который лучше подходит к ситуации, где нужно создать полный компонент в Lua и требуется экспортировать его так, чтобы он был доступен через COM любому запущенному приложению.
+<a name="3.3.2"></a>
+<h5>3.3.2 Использование методов и свойств</h5>
+Диспинтерфейсы имеют два “типа” составляющих: свойства и методы. LuaCOM имеет дело с ними обоими.<br><br>
+Обращения к методам делаются таким же образом, что и вызовы функций Lua, сохраняемых в таблице и имеющих “собственный” параметр:
+<pre><code>obj = luacom.CreateObject("TEST.Test")
+if obj == nil then
+  exit(1)
+end
+-- method call (вызов метода)
+a = obj:Teste(1,2)
+-- another one (другой вызов)
+obj:Teste2(a+1)</code></pre>
+Важно заметить необходимость использования двоеточия – “:” – для вызовов методов.
+Хотя LuaCOM не использует собственный параметр, что передает Lua в этом случае, его наличие предполагается — то есть,
+LuaCOM всегда пропускает первый параметр в случае вызова метода; пренебрежение им может преподнести неприятные ошибки.
+Заметьте, что это правило не применяется когда используется метод по умолчанию LuaCOM-объекта, хранящегося в таблице или в свойстве другого LuaCOM-объекта (смотрите подраздел <a href=#default_method>Методы по умолчанию</a> ниже).<br><br>
+Обращение к свойствам очень похоже на подобные обращения к полям Lua-таблиц:
+<pre><code>obj = luacom.CreateObject("TEST.Test")
+if obj == nil then
+  exit(1)
+end
+-- property access (обращение к свойству)
+a = obj.TestData
+-- property setting (установка свойства)
+obj.TestData = a + 1</code></pre>
+К свойствам можно обращаться также как к методам. Это является обязательным при работе с параметризованными свойствами — то есть теми, что принимают (или требуют) параметров. Типичным примером такой ситуации является свойство коллекции “Item”.
+<pre><code>-- property access (обращение к свойству)
+a = obj:TestData()
+-- Parametrized property access
+-- Обращение к параметризованному свойству
+b = obj:TestInfo(2)
+-- Accessing collections (обращение к коллекции)
+c = obj.Files:Item(2)</code></pre>
+Обратите внимание, что в этой ситуации также нужно использовать двоеточие – “:”.<br><br>
+При обращении к свойству с вызовами метода, LuaCOM всегда переводит вызов метода к считыванию обращения (получению свойства).
+Для установки значения свойства, с помощью вызова метода, необходимо добавлять <a class=popupspot href="JavaScript:hhctrl.TextPopup('В будущей версии возможно будет разрешено изменять префикс.','Arial,9',10,10,0xffffff,0xd69967)">префикс “set”</a> к имени свойства и новое значение должно быть предоставлено в качестве последнего аргумента.
+<pre><code>-- property access (обращаемся к свойству)
+a = obj:TestData()
+-- Setting the property (устанавливаем свойство)
+b = obj:setTestInfo(2)
+-- Setting a parametrized property
+-- Установка параметризованного свойства
+c = obj.Files:setItem(2, "test.txt")</code></pre>
+Для уточнения кода, также можно использовать префикс “get”, хотя он и необязателен, так как поведением по умолчанию является считывание обращения.
+<pre><code>-- property access (обращаемся к свойству)
+a = obj:getTestData()
+b = obj:getTestInfo(2)
+c = obj.Files:getItem(2)</code></pre>
+<h6>Расширяемые интерфейсы</h6>
+LuaCOM позволяет использовать свойства как простые поля Lua таблицы только для объектов, которые имеют сведения о типе.
+Тем не менее, некоторые объекты, которые имеют типовую информацию, описывающую их интерфейсы, реализуют свойства не описанные в библиотеке типов: такие объекты реализуют расширяемые интерфейсы.
+Эти свойства могут быть использованы только с функциями доступа, как показано в <a href=release_info.htm#5.4.4>главе 5.4.4</a>.
+Пример подобного поведения обнаруживается в объектах <a class=popupspot href="JavaScript:hhctrl.TextPopup('в дословном переводе — инструментарий управления Windows. WMI — это одна из базовых технологий для централизованного управления и слежения за работой различных частей компьютерной инфраструктуры под управлением платформы Windows.','Arial,9',10,10,0xffffff,0xd69967)">WMI (Windows Management Instrumentation)</a>.
+<a name=#default_method></a>
+<h6>Методы по умолчанию</h6>
+Диспинтерфейс может иметь метод или свойство по умолчанию - то есть такой, который вызывается, когда клиент не указывает имя метода.
+LuaCOM вызывает метод по умолчанию, когда сам объект используется в качестве функции.
+<pre><code>excel = luacom.CreateObject("Excel.Application")
+excel.Visible = true
+excel.Workbooks:Add()
+-- Here we call the default method
+-- notice we DID NOT use the colon, as
+-- the object used is Sheets, not excel
+-- Здесь вызывается метод по умолчанию
+-- заметьте, двоеточие НЕ используется,
+-- так как объект использует Sheets, а не excel
+sheet = excel.Sheets(1)
+print(sheet.Name)
+-- Here we also call the default method
+-- Здесь также вызывается метод по умолчанию
+sheets = excel.Sheets
+sheet2 = sheets(2)
+print(sheet2.Name)
+-- Setting values (установка значений)
+excel.Sheets(1).Name = "MySheet1"
+excel:Quit()</code></pre>
+Это может быть полезно при работе с коллекциями, как правило, они по умолчанию имеют свойство <tt>Item</tt>.
+<div class="caution">ПРЕДУПРЕЖДЕНИЕ: будьте осторожны, не ставьте двоеточие при использовании методов по умолчанию для LuaCOM-объектов, содержащихся в таблице или в других объектах LuaCOM (смотрите пример выше).</div>
+<h6>Универсальные объекты LuaCOM</h6>
+Для считывания или записи свойств в универсальные объекты LuaCOM, необходимо обращение к ним в виде вызовов метода с правильным префиксом (<tt>get/set</tt>). Простая семантика обращения к полям таблицы здесь не работает.
+<pre><code>obj_typ = luacom.CreateObject("Some.TypedObject")
+obj_untyp = luacom.CreateObject("Untyped.Object")
+-- property read (get) считывание свойства
+a = obj_typ.Value
+b = obj_untyp:getValue()
+-- property write (set) запись свойства
+obj.typ = a + 1
+obj_untyp:setValue(b + 1)</code></pre>
+<h6>Обращение к свойству в Lua</h6>
+При реализации COM интерфейса в Lua, LuaCOM также поддерживает понятия свойств и индексацию свойств. LuaCOM переводит считывание и запись свойства в обращения к полям таблицы:
+<pre><code>interface = &#123;&#125;
+interface.Test = 1
+interface.TestIndex = &#123;2,3&#125;
+obj = luacom.ImplInterface(interface, "TEST.Test", "ITest")
+-- must print "1" (должна быть выведена "1")
+print(obj.Test)
+-- must print nil (if there is no member named Test2)
+-- должно быть выведено nil (если нет элемента по имени Test2)
+print(obj.Test2)
+-- this writes the field Test (делаем запись в поле Test)
+obj.Test = 1
+-- Indexed property read. Must return 3 (remember that
+-- indexed tables start at 1 in Lua)
+-- Считывание индексированного свойства. Должна возвратиться 3
+-- (помните, что индексация таблиц в Lua начинается с 1)
+i = obj:TestIndex(2)
+-- Sets the indexed field (установка индексированного поля)
+obj:setTestIndex(2,4)
+-- Now must return 4 (теперь должна возвратиться 4)
+i = obj:TestIndex(2)</code></pre>
+<a name="3.3.3"></a>
+<h5>3.3.3 Точки подключения: обработка событий</h5>
+<i>Точки подключения</i> являются частью стандартного механизма ActiveX, основной задачей которой, является предоставление объекту ActiveX возможности оповещения своего владельца (основную программу, что содержит объект ActiveX) о событиях любого рода.
+Точка подключения работает как "приемник событий", через который проходят события и уведомления.<br><br>
+Чтобы установить соединение с использованием LuaCOM, владелец объекта ActiveX должен создать таблицу для реализации интерфейса подключения, описание которого предоставляется объектом ActiveX
+(такой интерфейс называется <i>исходным</i> интерфейсом) и затем вызвать метод API <tt>Connect</tt>, передавая в качестве аргументов объекта LuaCOM объект ActiveX и таблицу реализации.
+Выполнив это, LuaCOM автоматически найдет исходный интерфейс по умолчанию, создаст объект LuaCOM, реализованный по предоставленной таблице и затем подключит этот объект к объекту ActiveX. Посмотрите следующий пример:
+<pre><code>-- Creates the COM object (создаем COM объект)
+--
+calendar = luacom.CreateObject("MSCAL.Calendar")
+if calendar == nil then
+  os.exit(1)
+end
+-- Creates implementation table (создаем таблицу реализации)
+--
+calendar_events = &#123;&#125;
+function calendar_events:AfterUpdate()
+  print("Calendar updated!")
+end
+-- Connects object and table (подключаем объект и таблицу)
+--
+res, cookie = luacom.Connect(calendar, calendar_events)
+if res == nil then
+  exit(1)
+end
+-- This should trigger the AfterUpdate event
+-- Это будет срабатывать по событию AfterUpdate
+calendar:NextMonth()</code></pre>
+<a class=popupspot href="JavaScript:hhctrl.TextPopup('идентификационные данные или маркер с челночной передачей между взаимодействующими программами или системами','Arial,9',10,10,0xffffff,0xd69967)">Cookie</a>, возвращаемый <tt>Connect</tt>, идентифицирует это соединение и впоследствии может использоваться для высвобождения подключения. A COM объект может иметь несколько приемников событий подключенных к нему одновременно.<br><br>
+Также возможно создание отдельного LuaCOM объекта, реализующего точку подключения исходного интерфейса и затем подключение его к объекту при помощи <tt>addConnection</tt>.
+<pre><code>-- Instances the COM object (создаем экземпляр объекта COM)
+--
+calendar = luacom.CreateObject("MSCAL.Calendar")
+if calendar == nil then
+  print("Error instantiating calendar")
+  os.exit(1)
+end
+-- Creates implementation table (создаем таблицу реализации)
+--
+calendar_events = &#123;&#125;
+function calendar_events:AfterUpdate()
+  print("Calendar updated!")
+end
+-- Creates LuaCOM object implemented by calendar_events
+-- Создаем объект LuaCOM реализованный по calendar_events
+event_handler = luacom.ImplInterface(calendar_events,
+  "MSCAL.Calendar",
+  "DCalendarEvents")
+if event_handler == nil then
+  print("Error implementing DCalendarEvents")
+  exit(1)
+end
+-- Connects both objects (подключаем оба объекта)
+--
+cookie = luacom.addConnection(calendar, event_handler)
+-- This should trigger the AfterUpdate event
+-- Это будет срабатывать по событию AfterUpdate
+calendar:NextMonth()
+-- This disconnects the connection point established
+-- Это отключает установленную точку подключения
+luacom.releaseConnection(calendar, event_handler, cookie)
+-- This should NOT trigger the AfterUpdate event
+-- Это НЕ будет срабатывать по событию AfterUpdate
+calendar:NextMonth()</code></pre>
+Обратите внимание, что <tt>addConnection</tt> также возвращает cookie. Для вызова <tt>releaseConnection</tt> чтобы разъединить подключение нужны как приемник событий, так и cookie.
+Старый синтаксис (до версии 1.3) <tt>releaseConnection</tt> (не принимает во внимание приемник событий и cookie) по-прежнему работает, но только отключает последнее сделанное соединение (но утечки не будет; все соединения отключаются когда объект попадает к сборщику мусора).<br><br>
+<b>Цикл обработки сообщений</b> Для получения событий необходимо иметь цикл обработки сообщений в потоке, которому принадлежит объект, принимающий события.
+Все события отправляются через очередь сообщений Windows, созданной во время инициализации COM.
+Без цикла обработки сообщений, объекты событий, реализованные LuaCOM, никогда не будут принимать вызовы метода из COM-объектов, где они зарегистрированы.
+Внепроцессным COM серверам, реализованным с LuaCOM. также нужен цикл обработки сообщений, чтобы иметь возможность обслуживать вызовы методов (которые предоставляются вызовом <tt>luacom.DetectAutomation</tt>).
+<a name="3.3.4"></a>
+<h5>3.3.4 Передача параметров</h5>
+LuaCOM имеет некоторые правила относительно передачи параметров. Они определяют как LuaCOM будет конвертировать списки COM параметров в Lua и обратно.
+Есть две различных ситуации для которых применяются эти правила: вызов метода COM-объекта из Lua и вызов Lua-функции из COM.
+Основной вопрос здесь в том, как обрабатывать различные типы параметров, поддерживаемых COM (“in” входные параметры, “out” выходные параметры, “in-out” параметры вход-выход, “optional” - дополнительные параметры и “defaultvalue” - параметры по умолчанию).
+Также имеются и специальные правила относительно универсальных LuaCOM объектов.
+<h6>Вызов COM из Lua</h6>
+Данная ситуация происходит когда обращаются к свойству или вызывается метод объекта COM через LuaCOM объект. Вот следующий пример:
+<pre><code>word = luacom.GetObject("Word.Application")
+-- Here we are calling the "Move" method of the Application object of
+-- a running instance of Microsoft(R) Word(R)
+-- Здесь мы вызываем метод "Move" объекта Application
+-- запущенного экземпляра Microsoft(R) Word(R)
+word:Move(100,100)</code></pre>
+В этом состоянии в процессе передачи параметров имеются два шага:
+<ol><li>конвертирование параметров Lua в COM (эта ситуация будет называться “lua2com”);</li>
+<li>конвертирование возвращаемого значения COM и вывод значений обратно в Lua (эта ситуация будет называться “com2lua”).</li></ol>
+<b>ситуация lua2com</b> Конвертирование выполняется на основе типовых сведений метода (или свойства); это делается в соответствии с тем порядком, в котором параметры располагаются в типовых сведениях метода.
+Параметры Lua используются в том же порядке. Для каждого параметра имеются три возможности:<br>
+<b>Параметр является “in” параметром</b> LuaCOM получает первый параметр Lua еще не преобразованным и конвертирует его в COM используя механизм преобразования типа LuaCOM.<br>
+<b>Параметр является “out” параметром</b> LuaCOM игнорирует этот параметр, так как он будте заполнен только вызванным методом. То есть, параметры “out” НЕ ДОЛЖНЫ появляться в списке параметров Lua.<br>
+<b>Параметр является “in-out” параметром</b> LuaCOM делает тоже самое, что и для параметров “in”.<br><br>
+Когда сторона, вызывающая метод, хочет пропустить (не включать) параметр, она должна передать значение <i>nil</i>; тогда LuaCOM поступит соответственно, сообщив вызываемому методу о пропущенном параметре.
+Если параметр имеет значение по умолчанию, то взамен используется оно. Обратите внимание, что LuaCOM не выражает недовольства когда пропускаются обязательные параметры. На самом деле LuaCOM игнорирует тот факт, что параметр является обязательным или дополнительным.
+Тем самым он оставляет ответственность за проверку этого на реализацию вызываемого метода.<br><br>
+<b>ситуация com2lua</b> Когда вызванный метод завершает работу, LuaCOM преобразует возвращаемое значение и выходные значения (то есть, значения параметров “out” и “in-out”) в возвращаемые значения Lua.
+То есть, возвращаемым значением метода является код Lua, возвращенный как первое возвращаемое значение; выходные значения возвращаются в порядке их отображения в списке параметров
+(обратите внимание, что здесь используется функция Lua с несколькими возвращаемыми значениями).
+Если метод не имеет возвращаемых значений, то есть, является <a class=popupspot href="JavaScript:hhctrl.TextPopup('void - пустой, функция не возвращающая никаких значений','Arial,9',10,10,0xffffff,0xd69967)">“<tt>void</tt>”</a> методом, возвращаемыми значениями будут выходные значения.
+Если нет и выходных значений, то возвращаемых значений вообще не будет.<br><br>
+Вызванный метод может опустить (не включать) возвращаемое значение или выходные значения; LuaCOM для каждого пропущенного значения возвратит значение<tt>nil</tt>.<br><br>
+Для иллюстрации этих понятий, далее следует пример таких ситуаций. Вначале показан отрывок из <a class=popupspot href="JavaScript:hhctrl.TextPopup('Файл данных Object Description Language - файл описания объекта (в OLE Automation - текстовый файл, содержащий описание интерфейса приложения; компилируется и помещается в библиотеку типа)','Arial,9',10,10,0xffffff,0xd69967)">ODL файла</a>, с описанием метода COM-объекта:
+<pre><code>HRESULT TestShort(
+  [in] short p1, // an "in" parameter (параметр "in")
+  [out] short* p2, // an "out" parameter (параметр "out")
+  [in,out] short* p3, // an "in-out" parameter (параметр "in-out")
+  [out,retval] short* retval); // the return value (возвращаемое значение)</code></pre>
+Далее следует пример того, что происходит при вызове метода:
+<pre><code>-- assume that "com" is a LuaCOM object
+-- Here we set p1 = 1, p3 = 2 and leave p2 uninitialized
+-- When the method returns, r1 = retval and r2 = p2 and r3 = p3
+-- Здесь мы устанавливаем p1 = 1, p3 = 2 и оставляем p2 неинициализированным
+-- При возврате метода, r1 = возвращаемое значение, r2 = p2 и r3 = p3
+r1, r2, r3 = com:TestShort(1,2)
+-- Below is WRONG! The are only two in/in-out parameters! Out parameters
+-- are ignored in the lua2com parameter translation
+-- Ниже НЕВЕРНО! Только два параметра in/in-out! Выходные параметры
+-- игнорируются в переводе параметра lua2com
+r1, r2, r3 = com:TestShort(1,2,3) -- WRONG! (НЕВЕРНО!)
+-- Here p1 = 1, p2 is uninitialized and p3 is omitted.
+-- Здесь p1 = 1, p2 не инициализирован, а p3 опущен.
+r1, r2, r3 = com:TestShort(1)
+-- Here we ignore the output value p3
+-- Здесь мы игнорируем выходное значение p3
+r1,r2 = com:TestShort(1)
+-- Here we ignore all output values (including the return value)
+-- Здесь мы игнорируем все выходные значения (включая возвращаемое значение)
+com:TestShort(1,2)</code></pre>
+<b>Универсальные LuaCOM объекты</b> При работе с универсальными объектами LuaCOM, привязка применяет другие правила: все Lua параметры преобразуются в COM как параметры “in-out”.
+LuaCOM полагает что эти методы всегда возвращают значение; если вызванный метод ничего не возвращает, LuaCOM продвигает <a class=popupspot href="JavaScript:hhctrl.TextPopup('Данная функция позволяет четко различать возвращаемое значение и параметры in-out, так как все параметры будут в конечном итоге возвращены.','Arial,9',10,10,0xffffff,0xd69967)">значение <i>nil</i></a>.
+Поскольку все параметры установлены как “in-out”, все они будут возвращены назад в Lua, изменены ли они или нет вызванным методом.
+<h6>Вызов Lua из COM</h6>
+Эта ситуация случается, когда кто-нибудь реализует COM диспинтерфейс в Lua. Привязка ActiveX должна переводить вызовы методов COM в вызовы функций Lua.
+Правила здесь, относительно преобразования списка параметров, теже самые, что показаны выше, только замените “Lua” на “COM” и наоборот.
+То есть, все COM параметры “in” и “in-out” преобразуются в параметры вызова функции Lua (выходные параметры игнорируются).
+По окончании вызова, первое возвращаемое значение конвертируется как возвращаемое значение COM метода,
+а другие возвращаемые значения переводятся как значения “in-out” и “out”, следуя порядку, в котором они отображаются в типовых сведениях метода.
+Продолжая предыдущий пример, здесь показана реализация метода, вызываемого из COM:
+<code><pre>implementation = &#123;&#125;
+-- This method receives TWO in/in-out parameters
+-- Этот метод принимает ДВА параметра in/in-out
+function implementation:TestShort(p1, p2)
+  -- the first one is the retval, the second the first out param
+  -- the third the second out param (in fact, an in-out param)
+  -- первый параметр является возвращаемым значением
+  -- второй - первым параметром out
+  -- третий - вторым параметром out (фактически, параметр in-out)
+  return p1+p2, p1-p2, p1*p2
+end
+-- Implements an interface (реализуем интерфейс)
+obj = luacom.ImplInterface(implementation, "TEST.Test", ITest)
+-- calls the function implementation:TestShort via COM
+-- вызываем функцию implementation:TestShort через COM
+r1, r2, r3 = obj:TestShort(1,2)</code></pre>
+<a name="3.3.5"></a>
+<h5>3.3.5 Обработка исключений</h5>
+Когда во время работы, при использованиии методов или объектов LuaCOM, происходят ошибки, имеются два действия которыми может отреагировать LuaCOM:
+<ul><li>передать сигнал об ошибке с помощью <tt>lua_error</tt>;</li>
+<li>игнорировать ошибку, просто ничего не делать или возвратить какой-либо тип значения ошибки.</li></ul>
+Ошибки во время выполнения разделяются на три типа:
+<ul><li>ошибки внутри вызовов API, подобных <tt>CreateObject</tt>;</li>
+<li>ошибки при использовании объектов LuaCOM (вызовы методов COM);</li>
+<li>ошибки внутри COM-объектов, реализованных в Lua.</li></ul>
+Третий тип ошибки всегда преобразуется в исключение COM. возвращаемое на сервер.
+Для облегчения отладки, эти ошибки также регистрируются в журнале (если возможность ведения журнала была активирована), так как сервер может молча проигнорировать эти исключения, особенно в событиях.<br><br>
+Если библиотека LuaCOM собрана с параметром <a class=popupspot href="JavaScript:hhctrl.TextPopup('параметр определяет, будут ли показываться подробные сведения.  verbose в переводе с англ. - подробный, многословный','Arial,9',10,10,0xffffff,0xd69967)">VERBOSE</a>, тогда масса информационных сообщений заносится в журнал и все ошибки отображаются в диалоговом окне.
+Это помогает отлаживать ошибки внутри событий "на лету", поскольку такие ошибки, как правило, игнорируются сервером. Обратите внимание, что при таком выборе замедляется работа LuaCOM и могут создаваться очень большие файлы журнала.<br><br>
+Поведение LuaCOM для двух других типов можно настраивать. Внутри таблицы LuaCOM имеется таблица по имени <tt>config</tt>. Эта таблица содержит три поля, связанные с обработкой ошибок:<br><br>
+<tt><b>abort_on_API_error (прервать на ошибке API)</b></tt> &nbsp;-&nbsp; если установлено значение <i>false</i>, LuaCOM не реагирует на ошибки внутри вызовов API.
+Это НЕ относится к ошибкам, вызванным неверными параметрами: такие ошибки всегда создают вызовы <tt>lua_error</tt>.
+Значением по умолчанию для этого поля является <i>false</i>.<br><br>
+<tt><b>abort_on_error (прервать на ошибке)</b></tt> &nbsp;-&nbsp; если установлено значение <i>false</i>, ошибки внутри вызовов метода и обращений к свойствам также игнорируются, возможно возвращение значения <i>nil</i> там, где предполагается возвращаемое значение.
+Значением по умолчанию для этого поля является <i>true</i>.<br><br>
+<tt><b>last error (последняя ошибка)</b></tt> &nbsp;-&nbsp; каждый раз, когда происходит ошибка во время выполнения, LuaCOM выдает это поле с текстом описания ошибки.
+Это поле можно использовать для проверки, не произошла ли неудача при выполнении некоей операции; просто не забывайте устанавливать его как <tt>nil</tt> перед операцией, представляющей интерес.
+<h6>Пример</h6>
+<pre><code>-- to make all LuaCOM errors runtime errors
+-- чтобы сделать все ошибки LuaCOM ошибками во время выполнения
+luacom.config.abort_on_error = true
+luacom.config.abort_on_API_error = true
+-- to silently ignore all errors
+-- для "тихого" игнорирования всех ошибок
+luacom.config.abort_on_error = false
+luacom.config.abort_on_API_error = false
+-- catching an ignored error
+-- перехват игнорируемой ошибки
+luacom.config.last_error = nil
+obj:RunMethod(x,y)
+if luacom.config.last_error then
+  print("Error!")
+  exit(1)
+end</code></pre>
+Все ошибки также регистрируются в журнале. Обратите внимание, что некоторые, записанные в журнал, исключения на самом деле вовсе не ошибки: это побочные эффекты широкого использования обработки исключений внутри LuaCOM кода.
+<a name="3.4"></a>
+<h4>3.4 Преобразование типов</h4>
+LuaCOM отвечает за преобразование значений из COM в Lua и наоборот. Большинство типов могут быть без проблем конвертированы из COM в Lua и обратно.
+Но есть некоторые типы, для которых преобразование не совсем очевидно. В таких случаях LuaCOM использует некоторые предопределенные правила для преобразования типов.
+Эти правила должны быть известны, чтобы избежать неверное истолкование результатов конвертации и не допустить ошибок.
+<a name="3.4.1"></a>
+<h5>3.4.1 Логические (boolean) значения</h5>
+LuaCOM использует логические значения <tt>true</tt> и <tt>false</tt> и не работает с соглашением старше Lua 4 (<i>nil</i> и <i>non-nil</i>).
+<a name="3.4.2"></a>
+<h5>3.4.2 Указатели на <tt>IDispatch</tt> и LuaCOM объекты</h5>
+Указатель на <tt>IDispatch</tt> преобразуется в LuaCOM объект, реализация которого предоставлена данным указателем.
+Если объект реализован локальной Lua таблицей, то указатель конвертируется в эту таблицу.
+Объект LuaCOM преобразуется в COM простой передачей его интерфейса реализации в COM.
+<a name="3.4.3"></a>
+<h5>3.4.3 Указатели на <tt>IUnknown</tt></h5>
+LuaCOM только позволяет передавать и принимать указатели <tt>IUnknown</tt>; он не работает с ними. Они преобразуются из пользовательских данных (userdata) в указанную метатаблицу и обратно.
+<a name="3.4.4"></a>
+<h5>3.4.4 Массивы и таблицы</h5>
+Если таблица не имеет метаметода <tt>__tocom</tt>, то вначале LuaCOM проверяет не является ли таблица описанием типа данных <a class=popupspot href="JavaScript:hhctrl.TextPopup('Универсальный тип, который может содержать разные типы данных.','Arial,9',10,10,0xffffff,0xd69967)"><i>variant</i></a>.
+Таблица является описанием типа данных variant, если она имеет поле <tt>Type</tt>. Это поле должно иметь строку, которая описывает как следует конвертировать поле <tt>Value</tt> таблицы.
+Возможными значениями для поля <tt>Type</tt> являются <tt>string</tt>, <tt>bool</tt>, <tt>error</tt>, <tt>null</tt>, <tt>currency</tt>, <tt>decimal</tt>, <tt>double</tt>, <tt>float</tt>, <tt>int8</tt>, <tt>uint8</tt>, <tt>int4</tt>, <tt>uint4</tt>, <tt>int2</tt>, <tt>uint2</tt>, <tt>int1</tt>, <tt>uint1</tt>, <tt>int</tt>, и <tt>uint</tt>. Каждое значение соответствует типу данных в variant.<br><br>
+Если таблица не описание типа данных variant, то она может быть описанием даты. Таблица является описанием даты если имеет одно из следующих полей: <tt>Day</tt> (день), <tt>DayOfWeek</tt> (день недели), <tt>Month</tt> (месяц), <tt>Year</tt> (год), <tt>Hour</tt> (час), <tt>Minute</tt> (минута), <tt>Second</tt> (секунда), <tt>Milliseconds</tt> (миллисекунда).
+LuaCOM инициализирует таблицу описания даты с предоставленными полями; другие - сохраняют свои значения по умолчанию.<br><br>
+Если таблица не является описанием даты, LuaCOM конвертирует таблицы Lua в <a class=popupspot href="JavaScript:hhctrl.TextPopup('от англ. safe array - безопасный массив, формат хранения массивов (однотипных элементов одинаковой длины) с описанием','Arial,9',10,10,0xffffff,0xd69967)">SAFEARRAY</a> и обратно.
+Чтобы быть преобразованными, таблицы Lua должны быть “массивоподобными”, то есть, все её элементы должны быть или “скалярами” или таблицами с одинаковой длиной.
+Эти таблицы также должны быть “массивоподобными”. Вот некоторые примеры как делается такое преобразование:
+<table class="content html_format tbl">
+<tr class="tr_head"><td>Таблица Lua</td><td>Safe Array</td></tr>
+<tr><td><tt>&nbsp;table = &#123;"name", "phone"&#125;</tt></td><td>&#91;”name” ”phone”]</td></tr>
+<tr><td><tt>&nbsp;table = &#123;&#123;1,2&#125;,&#123;4,9&#125;&#125;</tt></td><td>
+<table style="font-size:13px; font-family:Verdana,sans-serif;"><tr><td class="td_1"><span style="font-size:150%;line-height:120%;">&#91;</span></td><td class="td_1"><div style="margin-bottom:-3px;">1 2</div><div style="margin-top:-3px;">4 9</div></td><td class="td_1"><span style="font-size:150%;line-height:120%;">]</span></td></tr></table>
+</td></tr></table>
+Если у таблицы есть метаметод конвертирования, LuaCOM использует его как руководство для проведения преобразования. Если метаметодом является метод, LuaCOM вызывает его, передавая таблицу и COM тип.
+Метод должен возвратить COM-объект, который будет передан LuaCOM.
+Если метаметодом является таблица, LuaCOM разыскивает поля <tt>typelib</tt>, <tt>interface</tt> и <tt>coclass</tt>, и передает их в качестве аргументов в вызов API <tt>ImplInterfaceFromTypelib</tt>.
+Если таблица не имеет поля <tt>typelib</tt>, LuaCOM разыскивает поля <tt>progid</tt> и <tt>interface</tt>, и передает их в API вызов <tt>ImplInterface</tt>. В любом случае, LuaCOM передаст возвращенный объект в COM.
+<a name="3.4.5"></a>
+<h5>3.4.5 Тип <tt>CURRENCY</tt></h5>
+Значения <tt>CURRENCY</tt> конвертируются в Lua как числа. При конвертировании значения в COM, где предполагается <tt>CURRENCY</tt>, LuaCOM допускает как числа, так и строки, отформатированные с помощью текущей локали для значений валюты.
+Обратите внимание, что все это сильно зависит от конфигурации и LuaCOM только использует функции конвертирования VARIANT.
+<a name="3.4.6"></a>
+<h5>3.4.6 Тип <tt>DATE</tt></h5>
+При конвертировании из COM в Lua, поведением по умолчанию является преобразование значений <tt>DATE</tt> в строки, форматированные в соответствии с текущей локалью (текущим языковым стандартом).
+Верно и обратное: LuaCOM конвертирует строки, форматированные согласно текущей локали в значения <tt>DATE</tt>.<br>
+Скрипт может изменить преобразование из строк в таблицы, установкой в поле <tt>DateFormat</tt> таблицы <tt>luacom</tt> (пространство имен LuaCOM) строкового значения "<tt>table</tt>".
+Таблица будет иметь поля <tt>Day</tt>, <tt>DayOfWeek</tt>, <tt>Month</tt>, <tt>Year</tt>, <tt>Hour</tt>, <tt>Minute</tt>, <tt>Second</tt> и <tt>Milliseconds</tt>.
+Чтобы вернуть преобразование в строки, установите поле <tt>DateFormat</tt> как "<tt>string</tt>". Будьте осторожны с этой функцией, так как она может нарушить совместимость с другими скриптами.
+<a name="3.4.7"></a>
+<h5>3.4.7 Тип <tt>variant</tt></h5>
+При конвертировании из COM в Lua, поведением по умолчанию является преобразование различных значений в ближайший Lua-тип.
+Скрипт может изменить преобразование из Lua-типов в таблицу, описывающую variant, установкой поля <tt>TableVariants</tt> таблицы <tt>luacom</tt> (пространство имен LuaCOM) как <i>true</i>.
+Таблицы будут иметь поле <tt>Type</tt>, сообщающее исходный тип variant, и поле <tt>Value</tt>, содержащее преобразование к ближайшему Lua-типу.
+Будьте осторожны с этой функцией, так как она может нарушить совместимость с другими скриптами.
+<a name="3.4.8"></a>
+<h5>3.4.8 Обработка ошибок</h5>
+Когда LuaCOM не может конвертировать значение из COM или в COM, он выдает исключение, которое может быть преобразовано в <tt>lua_error</tt> или в COM исключение, в зависимости от того, кто из них был вызван.
+<a name="3.5"></a>
+<h4>3.5 Другие объекты</h4>
+Помимо COM автоматизации LuaCOM работает и с другими объектами. Вот их краткое описание.
+<a name="3.5.1"></a>
+<h5>3.5.1 Объект перечислитель (enumerator)</h5>
+Этот объект является посредником для COM-объекта реализующего <tt>IEnumVARIANT</tt> интерфейс.
+Он переводит вызовы, сделанные к полям таблицы в вызовы метода, использующего данный интерфейс. Перечислители часто появляются при работе с коллекциями.
+Для получения перечислителя для коллекции используется метод API Lua <tt>GetEnumerator</tt>. Пример:
+<pre><code>--
+-- Sample use of enumerators
+-- Пример использования перечислителя
+--
+-- Gets an instance (получаем экземпляр)
+word = luacom.GetObject("Word.Application")
+-- Gets an enumerator for the Documents collection
+-- Получаем перечислитель для коллекции документов
+docs_enum = luacom.GetEnumerator(word.Documents)
+-- Prints the names of all open documents
+-- Выводим в печать имена всех открытых документов
+doc = docs_enum:Next()
+while doc do
+  print(doc.Name)
+  doc = docs_enum:Next()
+end</code></pre>
+Метод <tt>pairs</tt> расширенного API Lua позволяет обход перечисления при помощи оператора цикла <tt>for</tt> Lua. Пример, показанный выше, может быть переписан так:
+<pre><code>--
+-- Sample use of enumerators
+-- Пример использования перечислителя
+--
+-- Gets an instance (получаем экземпляр)
+word = luacom.GetObject("Word.Application")
+-- Prints the names of all open documents
+-- Выводим в печать имена всех открытых документов
+for index, doc in luacom.pairs(word.Documents) do
+  print(doc.Name)
+end</code></pre>
+<a name="3.5.2"></a>
+<h5>3.5.2 Объект-контейнер точки подключения</h5>
+Данный объект позволяет COM-объекту, реализованному с помощью LuaCOM, отправлять события своему клиенту. Он используется, в первую очередь, для реализации COM-объекта в Lua, так что смотрите <a href="implement.htm">главу 4</a> для дополнительной информации.
+<a name="3.5.3"></a>
+<h5>3.5.3 Объекты Typelib и Typeinfo</h5>
+Эти объекты позволяют переходить через описания типов или библиотеку типов LuaCOM объекта.
+Они являются посредниками для интерфейсов <tt>ITypeLib</tt> и <tt>ITypeInfo</tt>, хотя доступны не все методы. Для получения дополнительной информации смотрите главы <a href="reference.htm#6.5">6.5 Объект Type Library</a> и <a href="reference.htm#6.6">6.6 Объект Type Information</a>.<br><br>
+<hr width=90%>
+<div align=center style="margin-left:5%; margin-right:5%;">LuaCOM был разработан Renato Cerqueira, Vinicius Almendra и Fabio Mascarenhas.<br>
+Проект финансируется компанией TeCGraf<br>(Technology Group on Computer Graphics).
+</div></div></div>
+<br><br>
+</body>
+</html>

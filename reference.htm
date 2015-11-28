@@ -1,0 +1,714 @@
+<!doctype HTML public "-//W3C//DTD HTML 4.0 Frameset//EN">
+<html><head><title>LuaCOM: справочник</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="StyleSheet" href="common_css.css">
+<script type="text/javascript" src="script.js"></script>
+<object id=hhctrl classid="clsid:ADB880A6-D8FF-11CF-9377-00AA003B7A11" width=0 height=0 vspace=0 hspace=0 border=0 type="application/x-oleobject"></object>
+</head>
+<body>
+<div class="post translation shortcuts_item">
+<div class="content html_format">
+<a name="6"></a>
+<div class="head0"><h1 class="title"><font size=5>Глава 6</font></h1></div>
+<h3>Справочник</h3>
+<a name="6.1"></a>
+<h4>6.1 Функции API C/C++</h4>
+<a name="luacom_open"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>luacom_open</tt></h5>
+<h6>Prototype</h6>
+<pre><code>void luacom_open(lua_State* L);</code></pre>
+<h6>Описание</h6>
+Эта функция инициализирует библиотеку LuaCOM, создает общую таблицу <tt>luacom</tt> и заполняет её методами LuaCOM в заданной Lua структуре.
+Обратите внимание, что перед этим необходимо инициализировать COM, при помощи <tt>OleInitialize</tt> или <tt>CoInitialize</tt>, или чего-то подобного.
+<h6>Пример</h6>
+<pre><code>int main()
+&#123;
+  lua_State *L = luaL_newstate();
+  OleInitialize(NULL);
+  luacom_open(L);
+  .
+  .
+  .
+&#125;</code></pre>
+<a name="luacom_close"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>luacom_close</tt></h5>
+<h6>Прототип</h6>
+<pre><code>void luacom_close(lua_State* L);</code></pre>
+<h6>Описание</h6>
+Данная функция предназначена для очистки структур данных, связанных с LuaCOM в указанной Lua структуре (L). В настоящее время она не делает ничего, но в будущих версиях это станет возможным.
+Так что не удаляйте её из своего кода! Она также должна вызываться перед завершением функций COM (<tt>OleUninitialize</tt> и <tt>CoInitialize</tt>) и перед <tt>lua_close</tt>.
+<h6>Пример</h6>
+<pre><code>int main()
+&#123;
+  lua_State *L = luaL_newstate();
+  OleInitialize(NULL);
+  luacom_open(L);
+  .
+  .
+  .
+  luacom_close(L);
+  lua_close(L);
+  OleUninitialize();
+&#125;</code></pre>
+<a name="luacom_detectAutomation"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>luacom_detectAutomation</tt></h5>
+<h6>Прототип</h6>
+<pre><code>int luacom_detectAutomation(lua_State *L, int argc, char *argv[]);</code></pre>
+<h6>Описание</h6>
+Данная функция получает из верхней части стека Lua таблицу, которая будет сохранять два поля, поименованные как “StartAutomation” и “Register” (эти поля должны содержать функции, реализующие эти действия).
+Затем она разыскивает командную строку (представленную как <tt>argc</tt> и <tt>argv</tt>) для ключей “/Automation” или “/Register”. Если один из этих ключей найден, то вызывается соответствующая функция в таблице Lua.
+В завершение она возвращает значение, сообщающее что произошло, так что вызывающая функция может изменить свой порядок действий (если это необходимо).<br><br>
+Эта функция просто помощник для реализации серверов Automation используя LuaCOM. Большая часть работы должна быть сделана в коде Lua, используя методы <tt>RegisterObject</tt>, <tt>NewObject</tt>, и <tt>ExposeObject</tt>.
+<div><h6>Пример</h6><div>
+<input type="button" value="(показать)" class="link" onclick="javascript:spoiler(this)"/></div>
+<div style="display:none;">
+<pre><code>/*
+ * com_object.cpp
+ *
+ * This sample C++ code initializes the libraries and
+ * the COM engine to export a COM object implemented in Lua
+ * Это пример кода на C++ для инициализации библиотек и
+ * COM движка для экспорта COM-объекта реализованного в Lua
+ *
+ */<br>
+#include &#60;ole2.h><br>
+// libraries (библиотеки)
+extern "C"
+&#123;
+#include &#60;lua.h>
+#include &#60;lualib.h>
+#include &#60;lauxlib.h><br>
+&#125;
+#include &#60;luacom.h>
+int main (int argc, char *argv[])
+&#123;
+  int a = 0;<br>
+  CoInitialize(NULL);<br>
+  IupOpen();<br>
+  lua_State *L = luaL_newstate();<br>
+  luaL_openlibs(L);<br>
+  luacom_open(L);<br>
+  luaL_dofile(L, "implementation.lua");<br>
+  // Pushes the table containing the functions
+  // responsible for the initialization of the
+  // COM object
+  // Помещаем таблицу, содержащую функции
+  // отвечающие за инициализацию COM объекта<br>
+  lua_getglobal(L, "COM");<br>
+  // detects whether the program was invoked for Automation,
+  // registration or none of that
+  // определяем, вызывалась ли программа для автоматизации,
+  // регистрации или ничего этого не было<br>
+  int result = luacom_detectAutomation(L, argc, argv);
+  switch(result)
+  &#123;
+  case LUACOM_AUTOMATION:
+    // runs the message loop, as all the needed initialization
+    // has already been performed
+    // запускаем цикл обработки сообщений, так как все
+    // нужное для инициализации, уже выполнено
+    MessageLoop();
+    break;<br>
+  case LUACOM_NOAUTOMATION:
+    // This only works as a COM server
+    // Это работает только как COM сервер
+    printf("Error. This is a COM server\n");
+    break;<br>
+  case LUACOM_REGISTER:
+    // Notifies that the COM object has been
+    // registered
+    // Сообщаем, что COM объект был
+    // зарегистрирован
+    printf("COM object successfully registered.");
+    break;<br>
+  case LUACOM_AUTOMATION_ERROR:
+    // detectAutomation found /Automation or /Register but
+    // the initialization Lua functions returned some error
+    // detectAutomation нашел /Automation или /Register, но
+    // Lua функции инициализации возвратили какую-то ошибку
+    printf("Error starting Automation");
+    break;
+  &#125;<br>
+ luacom_close(L);
+ lua_close(L);<br>
+ CoUninitialize();<br>
+ return 0;
+&#125;<br>
+-------
+-- implementation.lua
+--
+-- This is a sample implementation of a COM server in Lua
+-- Это пример реализации COM сервера в Lua
+--
+require "luacom"<br>
+-- This is the implementation of the COM object
+-- Это реализация COM объекта
+TestObj = &#123;&#125;<br>
+function TestObj:showWindow()
+  dialog.show()
+end
+function TestObj:hideWindow()
+  dialog.hide()
+end<br>
+-- Here we create and populate the table to
+-- be used with detectAutomation
+-- Здесь мы создаем и заполняем таблицу
+-- для использования с detectAutomation<br>
+COM = &#123;&#125;<br>
+-- This functions creates the COM object to be
+-- exported and exposes it.
+-- Эти функции создают COM объект, чтобы
+-- экспортировать и выставить его.
+function COM:StartAutomation()
+  -- creates the object using its default interface
+  -- создаем объект, используя его интерфейс по умолчанию
+  COMAppObject, events, e = luacom.NewObject(TestObj, "TESTE.Teste")
+  -- This error will be caught by detectAutomation
+  -- Эта ошибка будет выловлена detectAutomation
+  if COMAppObject == nil then
+    error("NewObject failed: "..e)
+  end
+  -- Exposes the object (выставляем объект)
+  cookie = luacom.ExposeObject(COMAppObject)
+  if cookie == nil then
+    error("ExposeObject failed!")
+  end
+end<br>
+  function COM:Register()
+  -- fills table with registration information
+  -- заполняем таблицу сведениями регистрации
+  local reginfo = &#123;&#125;
+  reginfo.VersionIndependentProgID = "TESTE.Teste"
+  reginfo.ProgID = reginfo.VersionIndependentProgID..".1"
+  reginfo.TypeLib = "teste.tlb"
+  reginfo.CoClass = "Teste"
+  reginfo.ComponentName = "Test Component"
+  reginfo.Arguments = "/Automation"
+  -- stores component information in the registry
+  -- сохраняем сведения компонента в реестре
+  local res = luacom.RegisterObject(reginfo)
+  if res == nil then
+    error("RegisterObject failed!")
+  end
+end<br>
+function COM:UnRegister()
+  -- fills table with registration information
+  -- заполняем таблицу сведениями регистрации
+  local reginfo = &#123;&#125;
+  reginfo.VersionIndependentProgID = "TESTE.Teste"
+  reginfo.ProgID = reginfo.VersionIndependentProgID..".1"
+  reginfo.TypeLib = "teste.tlb"
+  reginfo.CoClass = "Teste"
+  -- removes component information from the registry
+  -- удаляем сведения компонента из реестра
+  local res = luacom.UnRegisterObject(reginfo)
+  if res == nil then
+    error("UnRegisterObject failed!")
+  end
+end</code></pre></div></div>
+<a name="luacom_IDispatch2LuaCOM"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>luacom_IDispatch2LuaCOM</tt></h5>
+<h6>Прототип</h6>
+<pre><code>int luacom_IDispatch2LuaCOM(lua_State *L, void *pdisp_arg);</code></pre>
+<h6>Описание</h6>
+Данная функция принимает указатель на IDispatch, создает объект LuaCOM для него и помещает его в стек Lua. Эта функция полезна, когда кто-то получает интерфейс для COM-объекта из кода C/C++ и хочет использовать его в Lua.
+<h6>Пример</h6>
+<pre><code>void CreateAndExport(lua_State* L)
+&#123;
+  // Creates the object (создаем объект)
+  IUnknown *obj = CreateObj();<br>
+  // Gets the IDispatch (получаем IDispatch)
+  IDispatch* pdisp = NULL;
+  QueryInterface(IID_IDISPATCH, &pdisp);<br>
+  // pushes onto lua stack (помещаем в lua-стек)
+  luacom_IDispatch2LuaCOM(L, (void *) pdisp);
+&#125;</code></pre>
+<a name="6.2"></a>
+<h4>6.2 Стандартный API Lua</h4>
+<a name="CreateObject"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>CreateObject</tt></h5>
+<h6>Применение</h6>
+<pre><code>luacom_obj = luacom.CreateObject(ID, creation_context, untyped)</code></pre>
+<h6>Описание</h6>
+Данный метод находит идентификатор класса Class ID (CLSID), на который ссылается параметр <tt>ID</tt> и создает экземпляр объекта с этим Class ID. Если имеются какие-либо проблемы (не найден <tt>ProgID</tt>, ошибка при создании экземпляра (инстанцировании) объекта), метод возвращает значение <i>nil</i>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>ProgID</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>inet_obj = luacom.CreateObject("InetCtls.Inet")
+if inet_obj == nil then
+print("Error! Object could not be created!")
+end</code></pre>
+<a name="Connect"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>Connect</tt></h5>
+<h6>Use</h6>
+<pre><code>implemented_obj, cookie = luacom.Connect(luacom_obj, implementation_table)</code></pre>
+<h6>Описание</h6>
+Этот метод находит исходный интерфейс по умолчанию объекта <tt>luacom_obj</tt>, создает экземпляр этого интерфейса, реализация которого задается по <tt>implementation_table</tt> и создает точку соединения между <tt>luacom_obj</tt> и реализованным исходным интерфейсом.
+Любые вызовы, сделанные по <tt>luacom_obj</tt> к реализации исходного интерфейса, будут переведены в вызовы Lua к элементу функции, представленной в <tt>implementation_table</tt>.
+Если метод успешно выполняется, то по <tt>implementation_table</tt> реализуется объект LuaCOM плюс возвращается cookie, который идентифицирует подключение; в противном случае возвращается значение <i>nil</i>.<br>
+Обратите внимание что для получения событий необходимо иметь цикл обработки сообщений Windows.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM</td></tr>
+<tr valign=top align=center><td><tt>implementation_table</tt></td><td>таблица или данные пользователя</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>implemented_obj</tt></td><td>объект LuaCOM<br>значение <i>nil</i></td></tr>
+<tr valign=top align=center><td><tt>cookie</tt></td><td>число</td></tr></table>
+<h6>Пример</h6>
+<pre><code>events_handler = &#123;&#125;
+function events_handler:NewValue(new_value)
+  print(new_value)
+end
+events_obj = luacom.Connect(luacom_obj, events_handler)</code></pre>
+<a name="ImplInterface"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>ImplInterface</tt></h5>
+<h6>Применение</h6>
+<pre><code>implemented_obj = luacom.ImplInterface(impl_table, ProgID, interface_name)</code></pre>
+<h6>Описание</h6>
+Данный метод разыскивает библиотеку типов, связанную с ProgID и пытается найти типовые сведения об интерфейсе по имени “interface name”.
+Если все это обнаружено, то создается объект, чьей реализацией является таблица “impl table”, то есть, любой вызов метода или обращение к свойству этого объекта переводятся в вызовы или обращения к элементам этой таблицы.
+Затем он делает объект LuaCOM для реализованного интерфейса и возвращает его.
+Если во время обработки возникают какие-либо проблемы (не найден ProgID, не найден интерфейс, интерфейс не является диспинтерфейсом), метод возвращает значение <i>nil</i>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>impl_table</tt></td><td>таблица или данные пользователя</td></tr>
+<tr valign=top align=center><td><tt>ProgID</tt></td><td>строка</td></tr>
+<tr valign=top align=center><td><tt>interface_name</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>implemented_obj</tt></td><td>объект LuaCOM<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>myobject = &#123;&#125;
+function myobject:MyMethod()
+  print("My method!")
+end
+myobject.Property = "teste"
+luacom_obj = luacom.ImplInterface(myobject, "TEST.Test", "ITest")
+-- these are done via Lua (это сделано через Lua)
+myobject:MyMethod()
+print(myobject.Property)
+-- this call is done through COM (этот вызов сделан через COM)
+luacom_obj:MyMethod()
+print(luacom_obj.Property)</code></pre>
+<a name="ImplInterfaceFromTypelib"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>ImplInterfaceFromTypelib</tt></h5>
+<h6>Применение</h6>
+<pre><code>impl_obj = luacom.ImplInterfaceFromTypelib(
+  impl_table,
+  typelib_path,
+  interface_name,
+  coclass_name)</code></pre>
+<h6>Описание</h6>
+Данный метод загружает библиотеку типов, чьим путем к файлу является “typelib path” и пытается разыскать типовые сведения интерфейса по имени “interface name”.
+Если это выполнено, то создается объект, реализацией которого является “impl table”, то есть, любой вызов метода или обращение к свойству этого объекта переводится в вызовы или обращения к элементам таблицы.
+Затем он делает LuaCOM объект для реализованного интерфейса и возвращает его.
+Если в процессе появляются какие-либо проблемы (не найден ProgID, не найден интерфейс либо интерфейс не является диспинтерфейсом), метод возвращает значение <i>nil</i>.
+Параметр “coclass name” является дополнительным (необязательным); он нужен только если получающийся объект LuaCOM должен быть передан методам <tt>Connect</tt>, <tt>AddConnection</tt> или <tt>ExposeObject</tt>.
+Этот параметр определяет имя класса объекта <a href=implement.htm#4.3>Component Object</a> (составной объект), которому принадлежит интерфейс, так как этот интерфейс может быть использован в более чем одном “coclass”.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>impl_table</tt></td><td>таблица или пользовательские данные</td></tr>
+<tr valign=top align=center><td><tt>typelib_path</tt></td><td>строка</td></tr>
+<tr valign=top align=center><td><tt>interface_name</tt></td><td>строка</td></tr>
+<tr valign=top align=center><td><tt>coclass_name</tt></td><td>строка (необязательный параметр)</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>implemented_obj</tt></td><td>объект LuaCOM<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>myobject = &#123;&#125;
+function myobject:MyMethod()
+print("My method!")
+end
+myobject.Property = "teste"
+luacom_obj = luacom.ImplInterfaceFromTypelib(myobject, "test.tlb",
+"ITest", "Test")
+-- these are done via Lua (это сделано через Lua)
+myobject:MyMethod()
+print(myobject.Property)
+-- this call is done through COM (этот вызов сделан через COM)
+luacom_obj:MyMethod()
+print(luacom_obj.Property)</code></pre>
+<a name="GetObject"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>GetObject</tt></h5>
+<h6>Применение</h6>
+<pre><code>luacom_obj = luacom.GetObject(ProgID)
+luacom_obj = luacom.GetObject(moniker)</code></pre>
+<h6>Описание</h6>
+Первая версия метода находит идентификатор класса (Class ID) связанный с параметром ProgID и пытается разыскать работающий экземпляр объекта с этим Class ID.
+Если имеется какая-либо проблема (не найден ProgID, нет работающего объекта), метод возвращает значение <i>nil</i>.<br>
+Вторая версия пытается найти объект по его moniker. Если существует какая-либо проблема, метод возвращает значение <i>nil</i>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>ProgID/moniker</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>excel = luacom.GetObject("Excel.Application")
+if excel == nil then
+print("Error! Could not get object!")
+end</code></pre>
+<a name="NewObject/NewControl"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>NewObject/NewControl</tt></h5>
+<h6>Применение</h6>
+<pre><code>-- Creates a COM object (создаем COM объект)
+implemented_obj, events_sink, errmsg = luacom.NewObject(impl_table, ProgID)
+-- Creates an OLE control (создаем элемент управления OLE)
+implemented_obj, events_sink, errmsg = luacom.NewControl(impl_table, ProgID)</code></pre>
+<h6>Описание</h6>
+Данный метод аналогичен <tt>ImplInterface</tt>, только делает шаг дальше: он находит интерфейс по умолчанию для ProgID и использует его типовые сведения.
+То есть, этот метод создает Lua реализацию интерфейса по умолчанию COM-объекта.  Это весьма целесообразно при реализации полного COM-объекта в Lua.
+Также он создает точку подключения для отправления событий клиентскому приложению и возвращает её в качестве второго возвращаемого значения.
+Если в процессе возникают какие-либо проблемы (не найден ProgID, интерфейс по умолчанию не является диспинтерфейсом и т.д.), метод возвращает дважды значение <i>nil</i> и возвращает сообщение об ошибке, в качестве третьего возвращаемого значения.<br>
+Для отправки событий клиентскому приложению, просто вызываются методы из возвращенной таблицы приемника событий.
+Вызов метода будет переведен в вызовы COM для каждого подключения. Эти вызовы могут содержать параметры (как определено в типовых сведениях).
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>impl_table</tt></td><td>таблица или пользовательские данные</td></tr>
+<tr valign=top align=center><td><tt>ProgID</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>implemented_obj</tt></td><td>объект LuaCOM<br>значение <i>nil</i></td></tr>
+<tr valign=top align=center><td><tt>event_sink</tt></td><td>таблица приемника событий<br>значение <i>nil</i></td></tr>
+<tr valign=top align=center><td><tt>errmsg</tt></td><td>error message in the case of failure<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>myobject = &#123;&#125;
+function myobject:MyMethod()
+print("My method!")
+end
+myobject.Property = "teste"
+obj, evt, err = luacom.NewObject(myobject, "TEST.Test")
+-- these are done via Lua (это сделано через Lua)
+myobject:MyMethod()
+print(myobject.Property)
+-- this call is done through COM (этот вызов сделан через COM)
+luacom_obj:MyMethod()
+print(luacom_obj.Property)
+-- here we sink events (здесь мы принимаем события)
+evt:Event1()</code></pre>
+<a name="ExposeObject"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>ExposeObject</tt></h5>
+<h6>Применение</h6>
+<pre><code>cookie = luacom.ExposeObject(luacom_obj)</code></pre>
+<h6>Описание</h6>
+Данный метод создает и регистрирует <i>class factory</i> для <tt>luacom_obj</tt>, так что его могут использовать другие работающие приложения.
+Он возвращает cookie, который должен быть использован для отмены регистрации объекта. Если метод завершается ошибкой, он возвращает значение <i>nil</i>.
+<div class=caution>ВНИМАНИЕ: объект ДОЛЖЕН быть не зарегистрирован (используйте <tt>RevokeObject</tt>) перед вызовом <tt>luacom close</tt> или <tt>lua_close</tt>, в противном случае могут произойти необрабатываемые исключения.</div>
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>cookie</tt></td><td>число<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>myobject = luacom.NewObject(impl_table, "Word.Application")
+cookie = luacom.ExposeObject(myobject)
+function end_of_application()
+luacom.RevokeObject(cookie)
+end</code></pre>
+<a name="RegisterObject"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>RegisterObject</tt></h5>
+<h6>Применение</h6>
+<pre><code>result = luacom.RegisterObject(registration_info)</code></pre>
+<h6>Описание</h6>
+Данный метод создает нужные записи реестра для объекта COM используя сведения в таблице <tt>registration_info</tt>. Если компонент успешно зарегистрирован, метод возвращает значение отличное от <i>nil</i>.
+Таблица <i>registration_info</i> должна содержать <a class=popupspot href="JavaScript:hhctrl.TextPopup('Для лучшего описания этих полей смотрите документацию COM','Arial,9',10,10,0xffffff,0xd69967)">следующие поля</a>:<br>
+<b>VersionIndependentProgID</b> Это поле должно содержать строку, обозначающую программный идентификатор (ProgID) компонента, например: “MyCompany.MyApplication”.<br>
+<b>ProgID</b> Тоже самое, что и VersionIndependentProgID, но с номером версии, например: “MyCompany.MyApplication.2”.<br>
+<b>TypeLib</b> Имя файла типовой библиотеки, описывающей компонент. Это имя файла должно содержать путь, если типовая библиотека не находится в одной папке с исполняемым файлом.
+Примеры: <tt>mytypelib.tlb</tt>, <tt>c:\app\test.tlb</tt>, <tt>test.exe\1</tt> (последний пример может быть использован когда типовая библиотека связана с исполняемым файлом в качестве ресурса).<br>
+<b>Control</b> Должен быть <i>true</i>, если объект является контролом (элементом управления) OLE, и <i>false</i> или значение <i>nil</i> в противном случае.<br>
+<b>CoClass</b> Имя класса компонента. Должна существовать запись <tt>coclass</tt> в типовой библиотеке с тем же самым именем или регистрация завершится ошибкой.<br>
+<b>ComponentName</b> Это имя компонента, удобное для чтения человеком.<br>
+<b>Arguments</b> Это поле определяет, какие аргументы будут предоставлены исполняемому файлу компонента при запуске через COM. Обычно оно содержит “<tt>/Automation</tt>”.<br>
+<b>ScriptFile</b> Это поле указывает полный путь к файлу скрипта, который реализует компонент. Используется только для регистрации внутрипроцессных серверов.<br><br>
+Этот метод не является универсальным “инструментом регистрации” для компонентов COM, поскольку он предполагает, что регистрируемый компонент реализован работающим исполняемым файлом во время регистрации.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>registration_info</tt></td><td>таблица со сведениями регистрации</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>result</tt></td><td>значение <i>nil</i> или не-<i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>-- Lua registration code (Lua код регистрации)
+function RegisterComponent()
+reginfo.VersionIndependentProgID = "TESTE.Teste"
+-- Adds version information (добавляем сведения о версии)
+reginfo.ProgID = reginfo.VersionIndependentProgID..".1"
+reginfo.TypeLib = "teste.tlb"
+reginfo.CoClass = "Teste"
+reginfo.ComponentName = "Test Component"
+reginfo.Arguments = "/Automation"
+reginfo.ScriptFile = "teste.lua"
+local res = luacom.RegisterObject(reginfo)
+return res
+end</code></pre>
+<a name="UnRegisterObject"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>UnRegisterObject</tt></h5>
+<h6>Применение</h6>
+<pre><code>result = luacom.UnRegisterObject(registration_info)</code></pre>
+<h6>Описание</h6>
+Данный метод удаляет записи реестра о COM объекте, с использованием сведений в таблице <tt>registration_info</tt>. Если регистрация компонента успешно отменена, метод возвращает значение не-<i>nil</i>.
+Таблица <tt>registration_info</tt> должна содержать <a class=popupspot href="JavaScript:hhctrl.TextPopup('Для лучшего описания этих полей смотрите документацию COM.','Arial,9',10,10,0xffffff,0xd69967)">следующие поля</a>:<br>
+<b>VersionIndependentProgID</b> Это поле должно содержать строку, обозначающую программный идентификатор (ProgID) компонента, например: “MyCompany.MyApplication”.<br>
+<b>ProgID</b> Тоже самое, что и VersionIndependentProgID, но с номером версии, например: “MyCompany.MyApplication.2”.<br>
+<b>TypeLib</b> Имя файла типовой библиотеки, описывающей компонент. Это имя файла должно содержать путь, если типовая библиотека не находится в одной папке с исполняемым файлом.
+Примеры: <tt>mytypelib.tlb</tt>, <tt>c:\app\test.tlb</tt>, <tt>test.exe\1</tt> (последний пример может быть использован когда типовая библиотека связана с исполняемым файлом в качестве ресурса).<br>
+<b>CoClass</b> Имя класса компонента. Должна существовать запись <tt>coclass</tt> в типовой библиотеке с тем же самым именем или регистрация завершится ошибкой.<br>
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>registration_info</tt></td><td>таблица со сведениями регистрации</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>result</tt></td><td>значение <i>nil</i> или не-<i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>-- Lua registration code (Lua код регистрации)
+function UnRegisterComponent()
+reginfo.VersionIndependentProgID = "TESTE.Teste"
+-- Adds version information (добавляем сведения о версии)
+reginfo.ProgID = reginfo.VersionIndependentProgID..".1"
+reginfo.TypeLib = "teste.tlb"
+reginfo.CoClass = "Teste"
+local res = luacom.UnRegisterObject(reginfo)
+return res
+end</code></pre>
+<a name="addConnection"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>addConnection</tt></h5>
+<h6>Применение</h6>
+<pre><code>cookie = luacom.addConnection(client, server)</code></pre>
+<h6>Описание</h6>
+Это метод соединяет два LuaCOM объекта, устанавливая <tt>server</tt> как приемник событий для <tt>client</tt> — то есть, клиент будет вызывать методы сервера для объявления событий (в соответствии с моделью COM).
+Это будет работать, только если <tt>client</tt> поддерживает точки подключения типа <tt>server</tt>.
+Если метод успешно выполнен, он возвращает cookie, который идентифицирует соединение; в противном случае, выдается сообщение об ошибке.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>client</tt></td><td>объект LuaCOM</td></tr>
+<tr valign=top align=center><td><tt>server</tt></td><td>объект LuaCOM</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>cookie</tt></td><td>число</td></tr></table>
+<h6>Пример</h6>
+<pre><code>obj = luacom.CreateObject("TEST.Test")
+event_sink = &#123;&#125;
+function event_sink:KeyPress(keynumber)
+print(keynumber)
+end
+event_obj = luacom.ImplInterface(
+event_sink, "TEST.Test", "ITestEvents")
+cookie = luacom.addConnection(obj, event_obj)</code></pre>
+<a name="releaseConnection"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>releaseConnection</tt></h5>
+<h6>Применение</h6>
+<pre><code>luacom.releaseConnection(client, event_sink, cookie)</code></pre>
+<h6>Описание</h6>
+Данный метод отключает объект LuaCOM от приемника событий.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>client</tt></td><td>объект LuaCOM</td></tr>
+<tr valign=top align=center><td><tt>event_sink</tt></td><td>объект LuaCOM</td></tr>
+<tr valign=top align=center><td><tt>cookie</tt></td><td>объект LuaCOM</td></tr></table>
+<h6>Возвращаемые значения</h6>
+Нет.
+<h6>Пример</h6>
+<pre><code>obj = luacom.CreateObject("TEST.Test")
+event_sink = &#123;&#125;
+function event_sink:KeyPress(keynumber)
+print(keynumber)
+end
+event_obj = luacom.ImplInterface(
+event_sink, "TEST.Test", "ITestEvents")
+result = luacom.addConnection(obj, event_obj)
+.
+.
+.
+luacom.releaseConnection(obj)</code></pre>
+<a name="ProgIDfromCLSID"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>ProgIDfromCLSID</tt></h5>
+<h6>Применение</h6>
+<pre><code>progID = luacom.ProgIDfromCLSID(clsid)</code></pre>
+<h6>Описание</h6>
+Этот метод является посредником для Win32 функции <tt>ProgIDFromCLSID</tt>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>clsid</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>progID</tt></td><td>строка<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>progid = luacom.ProgIDfromCLSID("&#123;8E27C92B-1264-101C-8A2F-040224009C02&#125;")
+obj = luacom.CreateObject(progid)</code></pre>
+<a name="CLSIDfromProgID"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>CLSIDfromProgID</tt></h5>
+<h6>Применение</h6>
+<pre><code>clsid = luacom.CLSIDfromProgID(progID)</code></pre>
+<h6>Описание</h6>
+Это функция обратная <tt>ProgIDfromCLSID</tt>.
+<a name="ShowHelp"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>ShowHelp</tt></h5>
+<h6>Применение</h6>
+<pre><code>luacom.ShowHelp(luacom_obj)</code></pre>
+<h6>Описание</h6>
+Этот метод пытается обнаружить файл справки <tt>luacom_obj</tt> в его типовых сведениях и показать его.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM</td></tr></table>
+<h6>Возвращаемые значения</h6>
+Нет.
+<h6>Пример</h6>
+<pre><code>obj = luacom.CreateObject("TEST.Test")
+luacom.ShowHelp(obj)</code></pre>
+<a name="GetIUnknown"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>GetIUnknown</tt></h5>
+<h6>Применение</h6>
+<pre><code>iunknown = luacom.GetIUnknown(luacom_obj)</code></pre>
+<h6>Описание</h6>
+Данный метод возвращает userdata удерживая указатель интерфейса <tt>IUnknown</tt> на COM объект за <tt>luacom_obj</tt>.
+Важно отметить, что Lua не дублирует пользовательские данные (userdata): множество вызовов <tt>GetIUnknown</tt> для одного и того же объекта LuaCOM будут возвращать одни и те же userdata.
+Это означает, что счет ссылок на интерфейс <tt>IUnknown</tt> будет увеличиваться только один раз (то есть, первый раз userdata выталкиваются)
+и будет уменьшаться, только когда все ссылки на эти userdata выйдут из сферы действия (то есть, когда userdata сносит сборщик мусора).<br>
+Одним из возможных вариантов использования этого метода является проверка ссылаются ли два LuaCOM объекта на один и тот же объект COM.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>iunknown</tt></td><td>userdata с IUnknown<br>метатаблица<br>значение <i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>-- Creates two LuaCOM objects for the same COM object
+-- (a running instance of Microsoft Word(R) )
+-- Создаем два объекта LuaCOM для одного и того же COM объекта
+-- (работающего экземпляра Microsoft Word(R) )
+word1 = luacom.GetObject("Word.Application")
+word2 = luacom.GetObject("Word.Application")
+-- These two userdata should be the same
+-- Оба userdata должны быть одинаковы
+unk1 = luacom.GetIUnknown(word1)
+unk2 = luacom.GetIUnknown(word2)
+assert(unk1 == unk2)</code></pre>
+<a name="isMember"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>isMember</tt></h5>
+<h6>Применение</h6>
+<pre><code>answer = luacom.isMember(luacom_obj, member_name)</code></pre>
+<h6>Описание</h6>
+Этот метод возвращает <i>true</i> (то есть, значение отличное от значения <i>nil</i>), если существует метод или свойство <tt>luacom_obj</tt> по имени <tt>member_name</tt>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM</td></tr>
+<tr valign=top align=center><td><tt>member_name</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>answer</tt></td><td>nil or non-nil</td></tr></table>
+<h6>Пример</h6>
+<pre><code>obj = luacom.CreateObject("MyObject.Test")
+if luacom.isMember(obj, "Test") then
+result = obj:Test()
+end</code></pre>
+<a name="StartLog"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>StartLog</tt></h5>
+<h6>Применение</h6>
+<pre><code>result = luacom.StartLog(log_file_name)</code></pre>
+<h6>Описание</h6>
+Данный метод активирует ведение журнала LuaCOM, записывая в файл журнала все произошедшие ошибки.
+Если библиотека была собрана с параметром VERBOSE, он также записывает в журнал другие информационные сообщения, такие как создание и разрушение внутренних объектов LuaCOM, вызовы методов, и т.д.
+Это может помочь отследить объект утечки. Метод возвращает значение <i>true</i>, если файл журнала может быть открыт, в противном случае возвращается значение <i>false</i>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>log_file_name</tt></td><td>строка</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>result</tt></td><td>логический</td></tr></table>
+<h6>Пример</h6>
+<pre><code>ok = luacom.StartLog("luacomlog.txt")
+if not ok then
+print("log not opened")
+end</code></pre>
+<a name="EndLog"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>EndLog</tt></h5>
+<h6>Применение</h6>
+<pre><code>luacom.EndLog()</code></pre>
+<h6>Описание</h6>
+Этот метод останавливает ведение журнала (если он был активирован), и закрывает файл журнала.
+<h6>Параметры</h6>
+Нет.
+<h6>Возвращаемые значения</h6>
+Нет.
+<h6>Пример</h6>
+<pre><code>luacom.EndLog()</code></pre>
+<a name="GetEnumerator"></a>
+<h5 style="padding-left:30px; background-color:#87cefa;"><tt>GetEnumerator</tt></h5>
+<h6>Применение</h6>
+<pre><code>e = luacom.GetEnumerator(luacom_obj)</code></pre>
+<h6>Описание</h6>
+Данный метод возвращает COM перечислитель для заданного объекта LuaCOM (если он был предоставлен).
+Это тоже самое, что и вызов метода NewEnum, по крайней мере, для большинства объектов. Объект enumerator (перечислитель) описан в <a href="elements.htm#3.5.1">главе 3.5.1</a>.
+<h6>Параметры</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Параметр</td><td>Тип</td></tr>
+<tr valign=top align=center><td><tt>luacom_obj</tt></td><td>объект LuaCOM</td></tr></table>
+<h6>Возвращаемые значения</h6>
+<table class="content html_format tbl"><tr class=tr_head><td>Возвращаемый&nbsp;элемент</td><td>Возможные значения</td></tr>
+<tr valign=top align=center><td><tt>e</tt></td><td>объект enumerator <wbr>или&nbsp;значение&nbsp;<i>nil</i></td></tr></table>
+<h6>Пример</h6>
+<pre><code>-- Prints all sheets of an open Excel Application
+-- Выводим все листы открытого приложения Excel
+excel = luacom.GetObject("Excel.Application")
+e = luacom.GetEnumerator(excel.Sheets)
+s = e:Next()
+while s do
+print(s.Name)
+s = e:Next()
+end</code></pre>
+<a name="6.3"></a>
+<h4>6.3 Lua Extended API</h4>
+<h5>pairs</h5>
+<h5>GetType</h5>
+<h5>CreateLocalObject</h5>
+<h5>CreateInprocObject</h5>
+<h5>LoadConstants</h5>
+<h5>FillTypeInfo</h5>
+<h5>FillTypeLib</h5>
+<a name="6.4"></a>
+<h4>6.4 Объект Enumerator</h4>
+Объект перечислитель (enumerator) является посредником для интерфейса <tt>IEnumVARIANT</tt>. Он может быть получен при помощи API метода <tt>GetEnumerator</tt>.
+<h6>Методы</h6>
+<b>Next</b> возвращает следующий объект в перечислении или значение <tt>nil</tt>, если перечисление закончилось.<br>
+<b>Skip</b> пропускает следующий объект, возвращая значение <tt>true</tt> при успешном выполнении и значение <tt>false</tt> если это не так.<br>
+<b>Reset</b> перезапускает перечислитель.<br>
+<b>Clone</b> возвращает новый перечислитель в том же состоянии.
+<a name="6.5"></a>
+<h4>6.5 Объект Type Library (библиотека типов)</h4>
+Объект библиотека типов является посредником для интерфейса <tt>ITypeLib</tt>. Она может быть получена при помощи API метода <tt>LoadTypeLibrary</tt> или метода объекта type information <tt>GetTypeLib</tt>.
+<h6>Методы</h6>
+<b>GetDocumentation</b> возвращает таблицу содержащую поля <tt>name</tt>, <tt>helpstring</tt>, <tt>helpcontext</tt> и <tt>helpfile</tt> для библиотеки типов.<br>
+<b>GetTypeInfoCount</b> возвращает число описаний типов, содержащихся в библиотеке типов.<br>
+<b>GetTypeInfo(n)</b> возвращает объект type information для n-ного описания типа.<br>
+<b>ShowHelp</b> пытается запустить файл справки, связанный с библиотекой типов (если таковой имеется).
+<a name="6.6"></a>
+<h4>6.6 Объект Type Information</h4>
+Объект type information является посредником для интерфейса <tt>ITypeInfo</tt>. Он может быть получен с помощью метода API <tt>GetTypeInfo</tt> или метода объекта type library <tt>GetTypeInfo</tt>.
+<h6>Методы</h6>
+<b>GetTypeLib</b> возвращает содержащий объект type library.<br>
+<b>GetFuncDesc(n)</b> возвращает таблицу с отображением n-ной функции описания типа.
+Эта таблица содержит следующие поля: <tt>memid</tt> (диспетчерский идентификатор), <tt>invkind</tt> (invoke kind), <tt>Params</tt> (число параметров), <tt>ParamsOpt</tt> (число дополнительных (необязательных) параметров), <tt>description</tt>, <tt>helpfile</tt>, <tt>helpcontext</tt>, <tt>name</tt>.
+Кроме того, она сохраняет массивоподобную таблицу объявленных параметров, описывающих каждый параметр функции, с такими полями: <tt>name</tt>, <tt>type</tt>.<br>
+<b>GetVarDesc(n)</b> возвращает таблицу, отображающую n-ную переменную (или константу) в описании типа. Эта таблица содержит следующие поля: <tt>name</tt>, <tt>value</tt> (только для констант).<br>
+<b>GetDocumentation</b> возвращает таблицу с документацией описания типа, с полями <tt>name</tt>, <tt>helpstring</tt>, <tt>helpcontext</tt> и <tt>helpfile</tt>.<br>
+<b>GetTypeAttr</b> возвращает таблицу содержащую атрибуты типа для описания типа.
+Эта таблица содержит следующие поля: <tt>GUID</tt>, <tt>typekind</tt>, <tt>Funcs</tt> (число функций), <tt>Vars</tt> (число переменных или констант) и <tt>ImplTypes</tt>.
+Также имеется поле флагов - <tt>flags</tt>, содержащее таблицу с отображением флагов для данного описания типа.
+Эта таблица содержит следующие логические поля: <tt>control</tt>, <tt>appobject</tt>, <tt>dispatchable</tt>, <tt>oleautomation</tt>, <tt>cancreate</tt>.<br>
+<b>GetImplType(n)</b> Для описания типов COM классов, этот метод возвращает объект type information для n-ного интерфейса COM класса.<br>
+<b>GetImplTypeFlags(n)</b> Для описания типов COM классов, этот метод возвращает таблицу, содержащую флаги реализации для n-ного интерфейса, принадлежащего к COM классу.
+Эта таблица содержит следующие логические поля: <tt>default</tt>, <tt>source</tt>, <tt>restricted</tt>, <tt>defaultvtable</tt>.<br>
+<b>ExportEnumerations</b> возвращает таблицу со всеми перечислениями в данной библиотеке типов (typelib). Ключами являются имена перечислений, каждый из них является таблицей, включенной по значениям перечислений.<br><br>
+<hr width=90%>
+<div align=center style="margin-left:5%; margin-right:5%;">LuaCOM был разработан Renato Cerqueira, Vinicius Almendra и Fabio Mascarenhas.<br>
+Проект финансируется компанией TeCGraf<br>(Technology Group on Computer Graphics).
+</div></div></div>
+<br><br>
+</body>
+</html>

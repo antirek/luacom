@@ -1,0 +1,403 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<object type="text/site properties">
+  <param name="SiteType" value="toc">
+  <param name="Image Width" value="16">
+  <param name="Window Styles" value="0x800007">
+  <param name="ExWindow Styles" value="0x100">
+</object>
+
+<li><object type="text/sitemap">
+	<param name="Name" value="LuaCOM: руководство пользователя">
+	<param name="Local" value="overview.htm">
+</object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Глава 1.Введение">
+    <param name="Local" value="intro.htm">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="1.1 Свойства">
+    <param name="Local" value="intro.htm#1.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="1.2 Кому и что нужно читать">
+    <param name="Local" value="intro.htm#1.2">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Глава 2.Руководство">
+    <param name="Local" value="tutorial.htm">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="2.1 Использование библиотеки LuaCOM">
+    <param name="Local" value="tutorial.htm#2.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="2.2 Размещение COM объектов">
+    <param name="Local" value="tutorial.htm#2.2">
+  </object>
+    <li><object type="text/sitemap">
+    <param name="Name" value="2.3 Создание объектов">
+    <param name="Local" value="tutorial.htm#2.3">
+  </object>
+    <li><object type="text/sitemap">
+    <param name="Name" value="2.4 Получение сведений об объекте">
+    <param name="Local" value="tutorial.htm#2.4">
+  </object>
+    <li><object type="text/sitemap">
+    <param name="Name" value="2.5 Методы и свойства">
+    <param name="Local" value="tutorial.htm#2.5">
+  </object>
+    <li><object type="text/sitemap">
+    <param name="Name" value="2.6 Высвобождение объектов">
+    <param name="Local" value="tutorial.htm#2.6">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Глава 3. Элементы LuaCOM">
+    <param name="Local" value="elements.htm">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.1 API LuaCOM">
+    <param name="Local" value="elements.htm#3.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.2 Объекты LuaCOM">
+    <param name="Local" value="elements.htm#3.2">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.2.1 Удаление объекта">
+    <param name="Local" value="elements.htm#3.2.1">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.3 Автоматизация привязки">
+    <param name="Local" value="elements.htm#3.3">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.3.1 Реализация диспинтерфейсов в Lua">
+    <param name="Local" value="elements.htm#3.3.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.3.2 Использование методов и свойств">
+    <param name="Local" value="elements.htm#3.3.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.3.3 Точки подключения: обработка событий">
+    <param name="Local" value="elements.htm#3.3.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.3.4 Передача параметров">
+    <param name="Local" value="elements.htm#3.3.4">
+  </object>
+    <li><object type="text/sitemap">
+    <param name="Name" value="3.3.5 Обработка исключений">
+    <param name="Local" value="elements.htm#3.3.5">
+  </object>
+</ul>
+      <li><object type="text/sitemap">
+    <param name="Name" value="3.4 Преобразование типов">
+    <param name="Local" value="elements.htm#3.4">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Логические значения">
+    <param name="Local" value="elements.htm#3.4.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.4.2 Указатели на IDispatch и LuaCOM объекты">
+    <param name="Local" value="elements.htm#3.4.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.4.3 Указатели на IUnknown">
+    <param name="Local" value="elements.htm#3.4.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.4.4 Массивы и таблицы">
+    <param name="Local" value="elements.htm#3.4.4">
+  </object>  
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.4.5 Тип CURRENCY">
+    <param name="Local" value="elements.htm#3.4.5">
+  </object>
+    <li><object type="text/sitemap">
+    <param name="Name" value="3.4.6 Тип DATE">
+    <param name="Local" value="elements.htm#3.4.6">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.4.7 Тип variant">
+    <param name="Local" value="elements.htm#3.4.7">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.4.8 Обработка ошибок">
+    <param name="Local" value="elements.htm#3.4.8">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.5 Другие объекты">
+    <param name="Local" value="elements.htm#3.5">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.5.1 Объект Enumerator (перечислитель)">
+    <param name="Local" value="elements.htm#3.5.1">
+  </object>  
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.5.2 Объект-контейнер точки подключения">
+    <param name="Local" value="elements.htm#3.5.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="3.5.3 Объекты Typelib и Typeinfo">
+    <param name="Local" value="elements.htm#3.5.3">
+  </object>
+</ul></ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Глава 4. Реализация объектов COM и элементов управления ими в Lua">
+    <param name="Local" value="implement.htm">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.1 Введение">
+    <param name="Local" value="implement.htm#4.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.2 Полезно ли это в действительности?">
+    <param name="Local" value="implement.htm#4.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.3 Терминология">
+    <param name="Local" value="implement.htm#4.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4 Построение COM сервера в LuaCOM">
+    <param name="Local" value="implement.htm#4.4">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.1 Определение компонента">
+    <param name="Local" value="implement.htm#4.4.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.2 Объекты для экспорта">
+    <param name="Local" value="implement.htm#4.4.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.3 Создание библиотеки типов">
+    <param name="Local" value="implement.htm#4.4.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.4 Регистрационные сведения">
+    <param name="Local" value="implement.htm#4.4.4">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.5 Регистрация объекта Component">
+    <param name="Local" value="implement.htm#4.4.5">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.6 Реализация и выставление компонента">
+    <param name="Local" value="implement.htm#4.4.6">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.4.7 Инициализация и завершение работы">
+    <param name="Local" value="implement.htm#4.4.7">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.5 Запуск COM сервера">
+    <param name="Local" value="implement.htm#4.5">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.6 Создание событий">
+    <param name="Local" value="implement.htm#4.6">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.7 Полнофункциональный пример">
+    <param name="Local" value="implement.htm#4.7">
+  </object>  
+  <li><object type="text/sitemap">
+    <param name="Name" value="4.8 Построение элементов управления OLE Lua">
+    <param name="Local" value="implement.htm#4.8">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Глава 5. Информация о версии">
+    <param name="Local" value="release_info.htm">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.1 Ограничения">
+    <param name="Local" value="release_info.htm#5.1">
+  </object>    
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.2 Известные ошибки">
+    <param name="Local" value="release_info.htm#5.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.3 Дальнейшие улучшения">
+    <param name="Local" value="release_info.htm#5.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.4 Значимые проблемы LuaCOM">
+    <param name="Local" value="release_info.htm#5.4">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.4.1 Проблемы создания экземпляра объектов COM">
+    <param name="Local" value="release_info.htm#5.4.1">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.4.2 Реализация COM-объектов из памяти">
+    <param name="Local" value="release_info.htm#5.4.2">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.4.3 Получение событий">
+    <param name="Local" value="release_info.htm#5.4.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.4.4 Расширяемые интерфейсы">
+    <param name="Local" value="release_info.htm#5.4.4">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.4.5 Проблема Visual Basic®">
+    <param name="Local" value="release_info.htm#5.4.5">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="5.5 История версий">
+    <param name="Local" value="release_info.htm#5.5">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Глава 6. Справочник">
+    <param name="Local" value="reference.htm">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="6.1 Функции API C/C++">
+    <param name="Local" value="reference.htm#6.1">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="luacom_open">
+    <param name="Local" value="reference.htm#luacom_open">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="luacom_close">
+    <param name="Local" value="reference.htm#luacom_close">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="luacom_detectAutomation">
+    <param name="Local" value="reference.htm#luacom_detectAutomation">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="luacom_IDispatch2LuaCOM">
+    <param name="Local" value="reference.htm#luacom_IDispatch2LuaCOM">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="6.2 Стандартный API Lua">
+    <param name="Local" value="reference.htm#6.2">
+  </object>
+<ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="CreateObject">
+    <param name="Local" value="reference.htm#CreateObject">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="Connect">
+    <param name="Local" value="reference.htm#Connect">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="ImplInterface">
+    <param name="Local" value="reference.htm#ImplInterface">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="ImplInterfaceFromTypelib">
+    <param name="Local" value="reference.htm#ImplInterfaceFromTypelib">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="GetObject">
+    <param name="Local" value="reference.htm#GetObject">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="NewObject/NewControl">
+    <param name="Local" value="reference.htm#NewObject/NewControl">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="ExposeObject">
+    <param name="Local" value="reference.htm#ExposeObject">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="RegisterObject">
+    <param name="Local" value="reference.htm#RegisterObject">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="UnRegisterObject">
+    <param name="Local" value="reference.htm#UnRegisterObject">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="addConnection">
+    <param name="Local" value="reference.htm#addConnection">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="releaseConnection">
+    <param name="Local" value="reference.htm#releaseConnection">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="ProgIDfromCLSID">
+    <param name="Local" value="reference.htm#ProgIDfromCLSID">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="CLSIDfromProgID">
+    <param name="Local" value="reference.htm#CLSIDfromProgID">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="ShowHelp">
+    <param name="Local" value="reference.htm#ShowHelp">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="GetIUnknown">
+    <param name="Local" value="reference.htm#GetIUnknown">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="isMember">
+    <param name="Local" value="reference.htm#isMember">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="StartLog">
+    <param name="Local" value="reference.htm#StartLog">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="EndLog">
+    <param name="Local" value="reference.htm#EndLog">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="GetEnumerator">
+    <param name="Local" value="reference.htm#GetEnumerator">
+  </object>
+</ul>
+  <li><object type="text/sitemap">
+    <param name="Name" value="6.3 Расширенный Lua Extended API">
+    <param name="Local" value="reference.htm#6.3">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="6.4 Объект Enumerator">
+    <param name="Local" value="reference.htm#6.4">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="6.5 Объект Type Library">
+    <param name="Local" value="reference.htm#6.5">
+  </object>
+  <li><object type="text/sitemap">
+    <param name="Name" value="6.6 Объект Type Information">
+    <param name="Local" value="reference.htm#6.6">
+  </object>
+</ul></ul>
+</body></html>

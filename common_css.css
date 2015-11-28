@@ -1,0 +1,27 @@
+ul {margin-top:2px;}
+ol {margin-top:2px;}
+.caution {padding-left:30px; padding-right:30px; background-color:#ffffe8;}
+.label {margin-left:30px; margin-top:10px; font-weight:bold; letter-spacing:8px;}
+.tbl {margin-left:30px; border-collapse:collapse; border-style:solid; border-color:#808080; border-width:1px;}
+.tbl_1 {margin-left:5%; margin-right:5%; border-collapse:collapse; border-style:solid; border-color:#808080;}
+.td_1 {border-style:none;}
+.tr_head {background-color:#dcdcdc; text-align:center;}
+td {padding-left:5px;padding-right:5px;vertical-align:top; border-style:solid; border-color:#808080; border-width:1px;}
+.link1 {border:none; background-color:transparent; text-decoration:underline; color:#0000ff; font-family:Courier New; display:block; outline:none; cursor:pointer;}
+.link {border:none; background-color:transparent; text-decoration:underline; color:#0000ff; display:block; outline:none; cursor:pointer;}
+.indent {margin-left:30px; font-family:Courier New;}
+.head0 {margin-left:30px; font-size:80%;}
+.epigraph {text-align:right; margin-left:20%; margin-right:5%; font-size:90%;}
+h2 {font-size:140%;}
+h3 {font-size:120%;}
+h4 {font-size:110%;}
+h5 {font-size:100%;}
+h6 {font-size:90%;margin-bottom:5px;margin-top:10px;}
+tt {font-size:110%;} 
+.post h1.title .flag{height:18px;display:inline-block;vertical-align:top;font-size:12px;font-family:Verdana,sans-serif;line-height:18px;text-align:left;padding-left:5px;padding-right:10px;-webkit-border-top-left-radius:2px;-webkit-border-bottom-left-radius:2px;-moz-border-radius-topleft:2px;-moz-border-radius-bottomleft:2px;border-top-left-radius:2px;border-bottom-left-radius:2px;text-decoration:none}
+.post h1.title .flag_translation{background:url(/images/flags.png?r=55) no-repeat right 0;color:#5c7f95}
+.posts .post h1.title{color:#767676;font:26px/118% normal Verdana,Tahoma,sans-serif}
+.post h1.title{margin-bottom:8px;color:#333;font:30px/118% normal Verdana,Tahoma,sans-serif}
+.post .content{font-size:13px;margin-bottom:10px;line-height:160%;font-family:Verdana,sans-serif;overflow:hidden}
+.post .content img{max-width:100%}
+pre code{font-size:110%;padding:.5em;background:#f8f8f8;display:block}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html><head><title>LuaCOM: руководство</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="StyleSheet" href="common_css.css">
+<script type="text/javascript" src="script.js"></script>
+<object id=hhctrl classid="clsid:ADB880A6-D8FF-11CF-9377-00AA003B7A11" width=0 height=0 vspace=0 hspace=0 border=0 type="application/x-oleobject"></object>
+</head>
+<body>
+<div class="post translation shortcuts_item">
+<div class="content html_format">
+<a name="2"></a>
+<div class="head0"><h1 class="title"><font size=5>Глава 2</font></h1></div>
+<h3>Руководство</h3>
+<a name="2.1"></a>
+<h4>2.1 Использование библиотеки LuaCOM</h4>
+LuaCOM является дополнением к языку программирования Lua.
+Для его использования нужно, либо чтобы бинарный файл библиотеки LuaCOM был подключен в основную программу, точно также как библиотека Lua или другое дополнение, либо требуется загрузить динамически подключаемую библиотеку LuaCOM через модуль механизма запроса Lua 5.
+Для разных версий библиотеки Lua существуют различные версии бинарного файла LuaCOM, так что обращайте внимание на правильность подключения.<br><br>
+Если в программу подключается LuaCOM, то следующим шагом является изменение исходного кода этой основной программы (программы в которую вводится LuaCOM) для вызова функций LuaCOM, инициализации функций COM и завершения функций, которые являются частью API C/C++.
+Чтобы сделать это, включаем заголовок LuaCOM — <tt>luacom.h</tt> — и вызываем эти функции в надлежащем порядке: LuaCOM должен быть инициализирован после инициализации обоих: и COM, и Lua;
+LuaCOM должен быть завершен перед Lua, а Lua обязан прекратить работу <a class=popupspot href="JavaScript:hhctrl.TextPopup('Обратите внимание на то, что COM должен быть инициализирован в каждом потоке, который будет его использовать. Для использования LuaCOM в данной ситуации, небезопасно разделять единственную структуру Lua между нескольких потоков; следует создавать новую Lua структуру для каждого потока и затем инициализировать LuaCOM с этой структурой.','Arial,9',10,10,0xffffff,0xd69967)">перед COM</a>.
+Вот пример простой программы с использованием LuaCOM в основной программе на языке C.
+<pre><code>/*
+ * Sample C program using luacom (пример C программы с использованием luacom)
+ */
+#include &#60;stdio.h>
+#include &#60;ole2.h> // needed for CoInitialize and CoUninitialize (нужен для CoInitialize и CoUninitialize)
+#include &#60;lua.h>
+#include &#60;luacom.h>
+
+int main (int argc, char *argv[]) &#123;
+  /* COM initialization (инициализация COM) */
+  CoInitialize(NULL);
+  /* library initialization (инициализация библиотеки) */
+  lua_State *L = luaL_newstate();
+  luacom_open(L);
+  if(luaL_dofile("luacom_sample.lua") != 0) &#123;
+    puts("Error running sample!");
+    exit(1);
+  &#125;
+  luacom_close(L);
+  lua_close(L);
+  CoUninitialize(NULL);
+  return 0;
+&#125;</code></pre>
+Обратите внимание на то, что инициализация COM должна быть перед <tt>luacom_open</tt>, а её завершение только после последнего <tt>lua_close</tt>, в противном случае могут произойти фатальные ошибки.<br><br>
+Использовать Lua для динамической загрузки LuaCOM несложно.
+Просто вызовите <tt>require "luacom"</tt> в скрипте Lua, и убедитесь, что файл <tt>luacom.dll</tt> имеется в переменной среды <tt>LUA_CPATH</tt> и что DLL'ка Lua (например, <tt>lua5.1.dll</tt>) находится в <tt>PATH</tt>.
+<a name="2.2"></a>
+<h4>2.2 Размещение COM объектов</h4>
+Первый шаг к использованию COM объекта - найти его. COM объекты зарегистрированы в системном реестре и ассоциированы (связаны) с уникальным идентификатором класса (Class Identifier), известном как CLSID.
+A CLSID также может быть ассоциирован со строкой, известной как программный идентификатор (Programmatic Identifier) или ProgID. Этот последний и является самым простым способом сослаться на COM объект.
+Например, ProgID для Microsoft Word<sup>&#174;</sup> является “<tt>Word.Application</tt>”.<br><br>
+Если заранее неизвестно каков CLSID или ProgID интересующего объекта, тогда можно использовать инструменты подобные <a class=popupspot href="JavaScript:hhctrl.TextPopup('Средство просмотра объектов OLE/COM (oleview.exe): это административный и тестировочный инструмент просмотра в структурированном виде, настройки, включения и проверки всех классов Microsoft Component Object Model (COM), установленных на компьютере.','Arial,9',10,10,0xffffff,0xd69967)">OleView</a> (можно загрузить <a href="http://Download.Microsoft.com/download/win2000platform/OLEVIEW/1.00.0.1/NT5/en-US/oleview_setup.exe" target=_blank>здесь</a>) для его поиска, хотя лучше всего найти их в документации к объекту.
+<a name="2.3"></a>
+<h4>2.3 Создание объектов</h4>
+С имеющимся ProgID или CLSID объекта, теперь можно создать его новый экземпляр или получить уже работающий.
+Самый простой способ сделать это заключается в использовании метода <tt>CreateObject</tt> в Lua API:
+<pre><code>word = luacom.CreateObject("Word.Application")
+assert(word)
+word.Visible = true</code></pre>
+Если имеется уже запущенный экземпляр интересующего объекта, то для получения его в работу нужно использовать <tt>GetObject</tt>. Следующий код иллюстрирует это:
+<pre><code>-- If there is an instance of Word(r) running,
+-- it will end it
+-- Если имеется работающий экземпляр объекта Word(r),
+-- данный код закроет его
+word = luacom.GetObject("Word.Application")
+if word then
+  word:Quit()
+  word = nil
+end</code></pre>
+<a name="2.4"></a>
+<h4>2.4 Получение сведений об объекте</h4>
+Для использования COM объекта, первая вещь что нужно знать, это его <i>интерфейс</i> - то есть, набор методов и свойств.
+Обычно эта информация имеется в документации объекта, но иногда такая документация недоступна. LuaCOM может помочь в этом, если объект имеет типовые сведения.
+Если объект имеет ассоциированный (т.е. связанный с ним) файл справки, LuaCOM может запустить его при помощи метода <tt>ShowHelp</tt>:
+<pre><code>word = luacom.CreateObject("Word.Application")
+assert(word)
+luacom.ShowHelp(word)</code></pre>
+Если объект имеет ассоциированную <a class=popupspot href="JavaScript:hhctrl.TextPopup('Одно из ключевых понятий технологии OLE Automation. Библиотека типов представляет собой иерархическое (трёхуровневое, считая корневой элемент) хранилище информации о возможностях ActiveX-сервера. Чаще всего библиотека типов хранится либо как отдельный файл с расширением «.tlb» или «.olb», либо внутри (в ресурсах) ActiveX-компонента, который она описывает. Кроме того, библиотека типов может находиться в составном документе OLE.','Arial,9',10,10,0xffffff,0xd69967)">библиотеку типов</a>,
+LuaCOM может сгенерировать и показать HTML файл с ее описанием. Эта информация также может быть считана при помощи других программ просмотра библиотеки типов, например как OleView.<br>
+Метод <tt>DumpTypeInfo</tt> может быть использован в консольных приложениях для перечисления методов и свойств интерфейса.
+Это не дает много информации, но может быть полезным при действиях с объектом.
+<a name="2.5"></a>
+<h4>2.5 Методы и свойства</h4>
+После создания объекта следующим шагом является его использование.
+Это прежде всего делается через <i>вызовы методов</i> и <i>обращения к свойствам</i>.
+Для вызова метода объекта делайте так, как если бы метод был функцией, хранящейся в таблице Lua, чьим ключом является название метода:
+<pre><code>-- Here we call the method ’Show’ of the COM object
+-- Вызываем метод ’Show’ COM объекта
+myobj:Show()
+-- A method with a return value (метод с возвратом значения)
+result = myobj:CheckState()
+-- A method with parameters (метод с параметрами)
+file = myobj:LoadFile("test.xyz", 1)
+-- A method with output values (метод с выводом значений)
+x, y = myobj:UpdatePosition(x, y)</code></pre>
+Для считывания или записи простых свойств, нужно просто пользоваться ими как если бы они были обычными полями таблицы.
+<pre><code>-- Reading properties (считывание свойств)
+value1 = obj1.Value
+value1 = obj2.Value
+-- writing a property (запись свойств)
+obj3.Value = value1 + value2</code></pre>
+Автоматизация включает поддержку <a class=popupspot href="JavaScript:hhctrl.TextPopup('Параметризованное свойство (иногда называемое массивом свойств) может использоваться для доступа к нескольким значениям через одно свойство элемента управления.','Arial,9',10,10,0xffffff,0xd69967)">параметризованых свойств</a>. Их можно считывать (или записывать) с помощью функций доступа.
+<pre><code>value = obj:getMatrixValue(1,1)
+value = value*0,125
+obj:setMatrixValue(1, 1, value)</code></pre>
+<a name="2.6"></a>
+<h4>2.6 Высвобождение объектов</h4>
+Объекты высвобождаются автоматически при помощи механизма сборки мусора Lua, то есть тогда, когда на них в Lua нет ссылок. Тем не менее, для некоторых объектов может потребоваться явный метод завершения вызова, подобно “Quit”.
+<pre><code>obj = luacom.CreateObject("MyApp.MyObj")
+-- Here we force an immediate release of the object
+-- Здесь мы заставляем немедленно высвободить объект
+obj = nil
+collectgarbage()</code></pre>
+Обратите внимание, если имеется любая ссылка на COM-объект, существующий в Lua, то приложение (или библиотека) в которой он реализован, не будет закрыта.
+<br><br>
+<hr width=90%>
+<div align=center style="margin-left:5%; margin-right:5%;">LuaCOM был разработан Renato Cerqueira, Vinicius Almendra и Fabio Mascarenhas.<br>
+Проект финансируется компанией TeCGraf<br>(Technology Group on Computer Graphics).
+</div></div></div>
+<br><br>
+</body>
+</html>
